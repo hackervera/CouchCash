@@ -37,7 +37,7 @@ To check and see how much you owe to other people, issue this command:
 `ruby account.rb`
 
 ## Example Output
-> tyler@hosting:~/social$ ruby account.rb
+> tyler@hosting:~/social$ ruby account.rb  
 > You owe max (maxoemail@gmail.com) 25
 
 That will check all the documents on the network for your records signed with your public id
