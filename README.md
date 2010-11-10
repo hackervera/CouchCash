@@ -21,7 +21,7 @@ Rename address book: `mv address-example.yaml address.yaml`
 After you have added keys to your address book, **and renamed it**, run the script to owe someone:  
 `ruby owe.rb max 20`
 
-## Example Output
+**Example Output**
 > tyler@hosting:~/social$ ruby owe.rb max 10  
 > 7d252200-cf40-012d-7fee-4040f2445421  
 > 5d88b91d168e9e89112e282be4b47a93b08e829d41dd81858e042f7770f872e76c9986457e7db818cf9c86c9bc313733693f6b  
@@ -37,7 +37,7 @@ You can also get free hosting from [CouchOne](http://www.couchone.com/).
 To check and see how much you owe to other people, issue this command:  
 `ruby account.rb`
 
-## Example Output
+**Example Output**
 > tyler@hosting:~/social$ ruby account.rb  
 > You owe max (maxoemail@gmail.com) 25
 
