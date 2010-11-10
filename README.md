@@ -37,6 +37,9 @@ You can also get free hosting from [CouchOne](http://www.couchone.com/).
 To check and see how much you owe to other people, issue this command:  
 `ruby account.rb`
 
+I am **extending this** so that you can see who owes you money.  
+Should be added fairly soon.
+
 **Example Output**
 > tyler@hosting:~/social$ ruby account.rb  
 > You owe max (maxoemail@gmail.com) 25
