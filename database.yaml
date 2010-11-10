@@ -1,0 +1,3 @@
+#Hostname and database name for couchdb instance
+host: tyler.couchone.com
+db: couchcash

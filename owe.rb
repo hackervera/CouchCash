@@ -6,6 +6,7 @@ require 'typhoeus'
 require 'json'
 require 'yaml'
 
+database = YAML.load_file('database.yaml')
 @uuid = UUID.new
 @signer = EzCrypto::Signer.from_file('keys/key.priv')
 address_book = YAML.load_file('address.yaml')
@@ -25,5 +26,5 @@ sig_hex = sig.unpack("H*").to_s()
 puts sig_hex
 sig_bin = sig_hex.to_a.pack("H*")
 body = { :ower_key => ower_key, :owed_key => owed_key, :amount => amount, :sig => sig_hex }.to_json
-@response = Typhoeus::Request.put("http://tyler.couchone.com/couchcash/#{uuid}", :body => body, :headers => { :content_type => "application/json" })
+@response = Typhoeus::Request.put("http://#{database["host"]}/#{database["db"]}/#{uuid}", :body => body, :headers => { :content_type => "application/json" })
 puts @response.body()

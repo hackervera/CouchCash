@@ -14,14 +14,15 @@ require 'ap'
 mykey = @signer.public_key().to_s()
 credit = {}
 address_book = YAML.load_file('address.yaml')
+database = YAML.load_file('database.yaml')
 debt = {}
 keyring = []
-all_docs = open("http://tyler.couchone.com/couchcash/_all_docs")
+all_docs = open("http://#{database["host"]}/#{database["db"]}/_all_docs")
 records = all_docs.read()
 json_records = JSON.parse(records)
 json_records["rows"].each() do |record|
   next if record["id"] =~ /_design/
-  document = open("http://tyler.couchone.com/couchcash/#{record["id"]}").read()
+  document = open("http://#{database["host"]}/#{database["db"]}/#{record["id"]}").read()
   json_document = JSON.parse(document)
   keyring << json_document["ower_key"]
   keyring << json_document["owed_key"]
