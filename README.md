@@ -12,12 +12,12 @@ then generate your public key:
 then cd back to main folder:  
 `cd..`
 
-You also need to edit and rename your address book.  
+You also need to **edit and rename** your address book.  
 `vi address-example.yaml`
 
-To add someone to your address book ask them to send you their public key PEM (key.pub) and enter it in the appropriate place:  
+To add someone to your address book ask them to send you their public key PEM (**key.pub**) and enter it in the appropriate place:  
 Rename address book: `mv address-example.yaml address.yaml`
 
 
-Any questions email [tjgillies@gmail.com](mailto://tjgillies@gmail.com)  
+**Any** questions email [tjgillies@gmail.com](mailto://tjgillies@gmail.com)  
 -- Love tyler
