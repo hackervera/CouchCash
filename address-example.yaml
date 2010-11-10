@@ -1,0 +1,22 @@
+#Change this filename to address.yaml after editing
+#Instructions in README
+- name: max
+  public_key: >
+    -----BEGIN PUBLIC KEY-----
+    MIIBCgKCAQEApXSO0+LL+5s6YV0pYMYu+JOZd1SlrlXn7IxyY4STLL7j43jSTkyK
+    Y7u5bxOdBEopbtrP5EwZLBHBZiBuN5bkhWOBYqv2c2+Yy5rcxwo8onEzTxw/2HA8
+    hAmK057nX2WTv5nbNFOjG/sO8dLTa01/V0Q9EISfLfBC9lruQ+xc3hOPS1OE1hiU
+    oSFjRrVfgTsGvCrX8+JRXb3Gx3NrVRnAHtotEE5BI/VrwM9AhZXf7ZXP8WKPMG9K
+    K1cv6Cdy50hW5EG9OSimYzR2fc1d/Oi6hd09ncwLb6xUvXcc1uxigFHGY2ztpjUV
+    bm7MEawR5wMhKdii3G3JKlo9gMyTE6JdEQIDAQAB
+    -----END PUBLIC KEY-----
+  paypal: maxoemail@gmail.com
+- name: tyler
+  public_key: >
+    -----BEGIN PUBLIC KEY-----
+    MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDBVhUggBKVuj4rl9hFgtxlBzFa
+    Ou3v3m11A3KzLKmPwien3bQy3dNRZpoPPzWvFEEZKLBhUlyuXGcfjFAI4ffD6ul4
+    05/yVmttKc9VZUD8aOMM1/b4CyfX+QiIMj54kNozEh1oR/CuqoeAgg9S/XLtqaGa
+    PpVUhX+yWA3LVCmILQIDAQAB
+    -----END PUBLIC KEY-----
+  paypal: tjgillies@gmail.com

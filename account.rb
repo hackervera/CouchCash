@@ -44,7 +44,7 @@ json_records["rows"].each() do |record|
   
 end
 debt.each_pair() do |owed,amount|
-  person = address_book.select{|person| person["public_key"].gsub(" ","") == owed.gsub(" ","") }
+  person = address_book.select{|person| person["public_key"].gsub(" ","").gsub(/-.*?-/,"") == owed.gsub(" ","").gsub(/-.*?-/,"") }
   if person.empty?
     name = owed
   else
