@@ -24,7 +24,8 @@ After you have added keys to your address book, **and renamed it**, run the scri
 This will create a document on your couchdb instance that will keep track of your debt.  
 Edit the **database.yaml** file to select a different couchdb host and/or database.  
 You can replicate to other people and share debt information.  
-Check out [CouchDB: The Definitive Guide](http://guide.couchdb.org/) for more info on setting up couchdb.
+Check out [CouchDB: The Definitive Guide](http://guide.couchdb.org/) for more info on setting up couchdb.  
+You can also get free hosting from [CouchOne](http://www.couchone.com/).
 
 To check and see how much you owe to other people, issue this command:  
 `ruby account.rb`
