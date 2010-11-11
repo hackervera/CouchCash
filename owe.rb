@@ -18,7 +18,7 @@ end
 uuid = @uuid.generate()
 puts uuid
 sig = @signer.sign(uuid)
-public_key = @signer.public_key()
+public_key = File.open("keys/key.pub").read().gsub(" ","").gsub(/-.*?-/,"")
 owed_key = person["public_key"]
 ower_key = public_key
 amount = ARGV[1]

@@ -10,7 +10,7 @@ then generate your public key:
 `openssl rsa -in key.priv -out key.pub -pubout`
 
 then cd back to main folder:  
-`cd..`
+`cd ..`
 
 You also need to **edit and rename** your address book.  
 `vi address-example.yaml`
