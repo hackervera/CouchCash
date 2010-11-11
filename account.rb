@@ -11,7 +11,7 @@ require 'yaml'
 require 'ap'
 @signer = EzCrypto::Signer.from_file('keys/key.priv')
 @verifier = @signer.verifier()
-mykey = File.open("keys/key.pub").read().gsub(" ","").gsub(/-.*?-/,"")
+mykey = File.open("keys/key.pub").read().gsub(" ","").gsub(/-.*?-/,"").gsub("\n","")
 credit = {}
 address_book = YAML.load_file('address.yaml')
 database = YAML.load_file('database.yaml')
@@ -24,8 +24,8 @@ json_records["rows"].each() do |record|
   next if record["id"] =~ /_design/
   document = open("http://#{database["host"]}/#{database["db"]}/#{record["id"]}").read()
   json_document = JSON.parse(document)
-  ower_key = json_document["ower_key"].gsub(" ","").gsub(/-.*?-/,"")
-  owed_key = json_document["owed_key"].gsub(" ","").gsub(/-.*?-/,"")
+  ower_key = json_document["ower_key"].gsub(" ","").gsub(/-.*?-/,"").gsub("\n","")
+  owed_key = json_document["owed_key"].gsub(" ","").gsub(/-.*?-/,"").gsub("\n","")
   
   
   if ower_key == mykey
@@ -42,6 +42,7 @@ json_records["rows"].each() do |record|
     credit[ower_key] ||= 0
     credit[ower_key] += json_document["amount"].to_i()
   end
+  
   
 end
 
