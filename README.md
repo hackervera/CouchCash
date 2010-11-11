@@ -34,15 +34,13 @@ You can replicate to other people and share debt information.
 Check out [CouchDB: The Definitive Guide](http://guide.couchdb.org/) for more info on setting up couchdb.  
 You can also get free hosting from [CouchOne](http://www.couchone.com/).
 
-To check and see how much you owe to other people, issue this command:  
+To check and see how much you owe, or how much other people owe you, issue this command:  
 `ruby account.rb`
-
-I am **extending this** so that you can see who owes you money.  
-Should be added fairly soon.
 
 **Example Output**
 > tyler@hosting:~/social$ ruby account.rb  
 > You owe max (maxoemail@gmail.com) 25
+> test () owes you 15
 
 That will check all the documents on the network for your records signed with your public id
 
