@@ -1,3 +1,5 @@
-this fork contains an experimental web application layer for creating anonymous couchcash transactions via openid and webfinger
+![screenshot](http://imgur.com/1KHQv.png)
 
-the web inteface is based on https://github.com/alexyoung/wingman
+This fork contains an experimental web application layer for creating anonymous [couchcash](http://github.com/tjgillies/couchcash) transactions via openid and webfinger.
+
+The web inteface is based on [wingman](https://github.com/alexyoung/wingman) by Alex Young
