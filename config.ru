@@ -35,6 +35,7 @@ get "/validate" do
   if arg_list.empty?
     response.write "No records"
   end
+  response.write "<p>visit http://projectdaemon.com/owe/WEBFINGER/AMOUNT to create a debt record</p>"
   response.finish
 end
 
@@ -126,7 +127,12 @@ get "/login" do
   openid_session = {}
   session[:openid] = openid_session
   consumer = OpenID::Consumer.new(openid_session,store)
-  check_id = consumer.begin(identifier)
+  begin
+    check_id = consumer.begin(identifier)
+  rescue OpenID::DiscoveryFailure
+    halt 403, "Could not find google profile, please create a <a href='http://www.google.com/profiles' target='_blank'>google profile</a>"
+  end
+  
   redirect check_id.redirect_url('http://projectdaemon.com','http://projectdaemon.com/openid_callback')
 end
 
@@ -195,7 +201,8 @@ get "/openid_callback" do
     response.set_cookie("openid", :expires =>  Time.now + 604800, :value => uuid)
     r.sadd "openid_people", identity
     balance = r.get "balance:#{identity}"
-    return "Looks good #{username}, welcome to the site."
+    #return "Looks good #{username}, welcome to the site."
+    redirect "/validate"
   else
     return "Oops there was an error. We have been notified"
   end

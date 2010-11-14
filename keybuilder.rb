@@ -35,24 +35,43 @@ def validate_doc(doc_url)
   owed_wfid = json["owed_wfid"]
   sig = json["sig"]
   doc_id = json["_id"]
+  this_user = get_username
   priv_key = OpenSSL::PKey::RSA.new(r.get "private_key:#{@username}")
   
+  puts "#{@username} #{this_user}"
   begin
-    amount = priv_key.public_decrypt([amount_owed].pack('H*'))
+    amount = priv_key.private_decrypt([amount_owed].pack('H*'))
+    puts amount
     person_owed = "me"
   rescue OpenSSL::PKey::RSAError => e
-    puts "Catching #{e.inspect}. What is doc_id? #{doc_id}"
+    if e.message == "padding check failed"
+      begin
+        amount = priv_key.public_decrypt([amount_owed].pack('H*'))
+      rescue
+      end
+    end
+    #puts "Catching #{e.inspect}. What is doc_id? #{doc_id}"
     begin
-      amount = priv_key.public_decrypt([amount_ower].pack('H*'))
+      amount = priv_key.private_decrypt([amount_ower].pack('H*'))
     rescue OpenSSL::PKey::RSAError => e
-      puts "Catching #{e.inspect}. Must not be for us. Returning nil"
-      return nil
+      if e.message == "padding check failed"
+        begin
+          amount = priv_key.public_decrypt([amount_ower].pack('H*'))
+        rescue
+          return nil
+        end
+      end
+      #puts "Catching #{e.inspect}. Must not be for us. Returning nil"
     end
     person_owed = "other"
   end
   
   if person_owed == "me"
-    ower = priv_key.public_decrypt([ower_wfid].pack('H*'))
+    if this_user == @username
+      ower = priv_key.private_decrypt([ower_wfid].pack('H*'))
+    else
+      ower = priv_key.public_decrypt([ower_wfid].pack('H*'))
+    end
     puts ower
     owed = "#{@username}@projectdaemon.com"
   else
