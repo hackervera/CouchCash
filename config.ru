@@ -178,8 +178,9 @@ get "/openid_callback" do
   openid_response = consumer.complete(request.params,"http://projectdaemon.com/openid_callback")
   puts openid_response.status.class
   identity = request.params["openid.identity"]
+  username = request.params["openid.claimed_id"].gsub(/.+\/profiles\/(.+?)/, '\1')
   if openid_response.status == :success
-    old_ident = r.get "uuid:#{identity}"
+    old_ident = r.get "private_key:#{username}"
     puts old_ident
     if old_ident.nil?
       puts "generating keys"
@@ -189,7 +190,7 @@ get "/openid_callback" do
     uuid = `uuidgen`.strip
     r.set "uuid:#{identity}", uuid 
     r.set  "identity:#{uuid}", identity
-    username = request.params["openid.claimed_id"].gsub(/.+\/profiles\/(.+?)/, '\1')
+    
     r.set "username:#{uuid}", username
     response.set_cookie("openid", :expires =>  Time.now + 604800, :value => uuid)
     r.sadd "openid_people", identity
