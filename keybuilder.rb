@@ -7,6 +7,7 @@ require 'json'
 
 def get_public_key(wfid)
   finger = Redfinger.finger(wfid)
+  puts finger.links
   finger.links.each do |link|
     if link["rel"] == "magic-public-key"
       key_text = link["href"]
@@ -74,10 +75,12 @@ def validate_doc(doc_url)
     owed = "#{@username}@projectdaemon.com"
   else
     ower = "#{@username}@projectdaemon.com"
-    puts ower
+    
     owed = priv_key.public_decrypt([owed_wfid].pack('H*'))
   end
+  puts ower.inspect
   public_key = get_public_key(ower)
+  puts public_key.inspect
   puts "#{public_key} #{sig} #{doc_id}"
   
 
@@ -91,12 +94,12 @@ def validate_doc(doc_url)
 end
 
 def validate_db(db_url)
-  all_docs = JSON.parse(open("#{db_url}/_all_docs").read)["rows"]
+  all_docs = JSON.parse(open("#{@couch}/_all_docs").read)["rows"]
   list_of_args = []
   all_docs.each do |doc|
     doc_id = doc["id"]
     
-    vals = validate_doc("#{db_url}/#{doc_id}") 
+    vals = validate_doc("#{@couch}/#{doc_id}") 
     if vals.nil?
       next
     end

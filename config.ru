@@ -12,12 +12,16 @@ require 'base64'
 require 'cgi'
 require 'uuid'
 require 'redfinger'
-require 'keybuilder'
 require 'yaml'
 
 config =  YAML::load_file "config.yml"
 domain = config["domain"]
+puts domain
 couch = config["couch"]
+
+
+require 'keybuilder'
+
 
 r = Redis.new
 run Sinatra::Application
@@ -34,6 +38,8 @@ end
 
 get "/validate" do
   @username = get_username
+  @domain = domain
+  @couch = couch
   arg_list = validate_db(couch)
   arg_list.each do |ower, owed, amount|
     response.write "#{ower} owes #{owed} #{amount}<br>"
