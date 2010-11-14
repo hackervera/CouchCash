@@ -1,0 +1,84 @@
+<!DOCTYPE html> 
+<html> 
+  <head> 
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" /> 
+    <title>Wingman</title> 
+    <link type="text/css" href="/style/aristo.css" rel="stylesheet" />	
+    <link type="text/css" href="/style/screen.css" rel="stylesheet" />
+    <link rel="stylesheet" media="only screen and (max-device-width: 1024px)" href="/style/ipad.css" type="text/css" />
+    <link rel="stylesheet" media="only screen and (max-device-width: 480px)" href="/style/iphone.css" type="text/css" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <script src='/script/lib/json2.js'></script>
+    <script src='/script/lib/jquery.min.js'></script>
+    <script src='/script/lib/jquery-ui.min.js'></script>
+    <script src='/script/reusable/feedback.js'></script>
+    <script src='/script/reusable/lock.js'></script>
+    <script src='/script/reusable/storage.js'></script>
+    <script src='/script/reusable/mvc.js'></script>
+    <script src='/script/models.js'></script>
+    <script src='/script/jquery-extensions.js'></script>
+    <script src='/script/defaults.js'></script>
+    <script src='/script/editable.js'></script>
+    <script src='/script/tasks.js'></script>
+    <script src='/script/projects.js'></script>
+    <script src='/script/search.js'></script>
+    <script src='/script/keyboard.js'></script>
+    <script src='/script/application.js'></script>
+  </head>
+  <body>
+    <div id="login-dialog">
+      <p>Enter your google username to sign in using OpenID.</p>
+      <p>
+        <input id="openid_url" name="name" type="text" />@gmail.com
+      </p>
+      <p>
+        <a href="#" id="login-button">Login</a>
+      </p>
+    </div>
+    <div class="outline-view">
+      <ul>
+        <li><h2>Balance</h2></li>
+        <li>
+          <ul class="items">
+            <li><a href="#" class="named-collection" id="show-inbox">Overview</a></li>
+            <li><a href="#" class="named-collection" id="show-inbox">Transaction Log</a></li>
+          </ul>
+        </li>
+        <li><h2>Connect</h2></li>
+        <li>
+          <ul class="items">
+            <li><a href="#" class="named-collection" id="show-today">Contact List</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+    <div class="content-divider"></div>
+    <div class="content" id="settings" style="display: none">
+      <div class="title">
+        <h1>Settings</h1>
+      </div>
+      <div class="container">
+        <div id="tabs"> 
+          <ul> 
+            <li><a href="#tabs-1">Your Account</a></li> 
+          </ul> 
+          <div id="tabs-1">
+            <h2>Account Details</h2>
+            <p>Change your account details here.</p>
+            <div id="settings-feedback"></div>
+            <br clear="all" />
+          </div> 
+        </div> 
+      </div>    
+    </div>    
+    <div id="global-menu" class="ui-state-default">
+      <ul>
+        <li class="task-related-button"><div class="task add-button">Send Money</div></li>
+        <li class="task-related-button" style="display: none"><div id="delete-task" class="task delete-button">Delete Task</div></li>
+        <li class="task-related-button" style="display: none"><div id="archive-tasks" class="task archive-button">Archive</div></li>
+        <li class="settings-related-button right red-button" style="display: none"><a href="/logout"><div id="logout">Logout</div></a></li>
+        <li class="task-related-button right"><div id="show-settings" class="settings-button">Settings</div></li>
+      </ul>
+    </div>
+  </body>
+</html>
