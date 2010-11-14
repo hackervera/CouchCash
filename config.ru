@@ -14,8 +14,8 @@ require 'uuid'
 require 'redfinger'
 require 'keybuilder'
 
-domain = "YOUR DOMAIN HERE"
-couch = "YOUR COUCHDB URL HERE"
+domain = "YOUR DOMAIN"
+couch = "YOUR COUCHDB"
 r = Redis.new
 run Sinatra::Application
 enable :sessions
