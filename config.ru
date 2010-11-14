@@ -13,9 +13,12 @@ require 'cgi'
 require 'uuid'
 require 'redfinger'
 require 'keybuilder'
+require 'yaml'
 
-domain = "YOUR DOMAIN HERE"
-couch = "YOUR COUCHDB URL HERE"
+config =  YAML::load_file "config.yml"
+domain = config["domain"]
+couch = config["couch"]
+
 r = Redis.new
 run Sinatra::Application
 enable :sessions
