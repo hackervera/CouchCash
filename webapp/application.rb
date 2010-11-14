@@ -1,4 +1,5 @@
 r = Redis.new
+url = "PUT YOUR WEBSITE HERE"
 enable :sessions
 
 get "/apikey" do
@@ -39,7 +40,7 @@ get "/login" do
   session[:openid] = openid_session
   consumer = OpenID::Consumer.new(openid_session,store)
   check_id = consumer.begin(identifier)
-  redirect check_id.redirect_url('http://projectdaemon.com','http://projectdaemon.com/openid_callback')
+  redirect check_id.redirect_url(url,"#{url}/openid_callback")
 end
 
 get "/send_coin" do
@@ -61,7 +62,7 @@ get "/openid_callback" do
   store = OpenID::Store::Filesystem.new('openid')
   openid_session = session[:openid]
   consumer = OpenID::Consumer.new(openid_session,store)
-  openid_response = consumer.complete(request.params,"http://projectdaemon.com/openid_callback")
+  openid_response = consumer.complete(request.params,"#{url}/openid_callback")
   puts openid_response.status.class
   identity = request.params["openid.identity"]
   if openid_response.status == :success
