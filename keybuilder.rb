@@ -35,15 +35,15 @@ def validate_doc(doc_url)
   owed_wfid = json["owed_wfid"]
   sig = json["sig"]
   doc_id = json["_id"]
-  priv_key = OpenSSL::PKey::RSA.new(r.get "private_key:tjgillies")
+  priv_key = OpenSSL::PKey::RSA.new(r.get "private_key:#{@username}")
   
   begin
-    amount = priv_key.private_decrypt([amount_owed].pack('H*'))
+    amount = priv_key.public_decrypt([amount_owed].pack('H*'))
     person_owed = "me"
   rescue OpenSSL::PKey::RSAError => e
     puts "Catching #{e.inspect}. What is doc_id? #{doc_id}"
     begin
-      amount = priv_key.private_decrypt([amount_ower].pack('H*'))
+      amount = priv_key.public_decrypt([amount_ower].pack('H*'))
     rescue OpenSSL::PKey::RSAError => e
       puts "Catching #{e.inspect}. Must not be for us. Returning nil"
       return nil
@@ -52,16 +52,20 @@ def validate_doc(doc_url)
   end
   
   if person_owed == "me"
-    ower = priv_key.private_decrypt([ower_wfid].pack('H*'))
+    ower = priv_key.public_decrypt([ower_wfid].pack('H*'))
+    puts ower
     owed = "#{@username}@projectdaemon.com"
-    public_key = get_public_key(ower)
   else
     ower = "#{@username}@projectdaemon.com"
-    public_key = get_public_key(owed)
-    owed = priv_key.private_decrypt([owed_wfid].pack('H*'))
+    puts ower
+    owed = priv_key.public_decrypt([owed_wfid].pack('H*'))
   end
+  public_key = get_public_key(ower)
+  puts "#{public_key} #{sig} #{doc_id}"
   
+
   if verify_doc(public_key, sig, doc_id) == false
+    puts "Failed to verify"
     return nil
   end
   

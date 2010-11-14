@@ -82,10 +82,13 @@ get "/owe/:wfid/:amount" do
   if public_key.nil?
     return "That user doesn't exist.... yet"
   end
+  puts username
   owed_wfid = priv_key.private_encrypt(params[:wfid]).unpack('H*').to_s
   ower_wfid = public_key.public_encrypt("#{username}@projectdaemon.com").unpack('H*').to_s
+  
   amount_owed = public_key.public_encrypt(amount).unpack('H*').to_s
   amount_ower = priv_key.private_encrypt(amount).unpack('H*').to_s
+  
   body = { :owed_wfid => owed_wfid, :ower_wfid => ower_wfid, :amount_owed => amount_owed, :amount_ower => amount_ower, :sig => sig }
   response = Typhoeus::Request.put("http://tyler.couchone.com/couchcash/#{doc_id}", :body => body.to_json, :headers => { :content_type => "application/json" })
   redirect "/validate"
