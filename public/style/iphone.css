@@ -1,0 +1,13 @@
+@media screen and (max-device-width: 480px) {
+* { margin: 0; border: 0; padding: 0; }
+body {
+-webkit-text-size-adjust: none;
+}
+div {
+clear: both !important;
+float: none !important;
+width: 320px !important;
+padding: 0 !important;
+margin: 0 !important;
+}
+}
