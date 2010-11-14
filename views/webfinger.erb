@@ -2,5 +2,5 @@
 <XRD xmlns='http://docs.oasis-open.org/ns/xri/xrd-1.0'>
 	<Subject>acct:<%= @username %>@<%= @domain %></Subject>
 	<Alias>http://<%= @domain %>/webfinger/<%= @username %></Alias>
-  <Link rel="magic-public-key" href="data:application/magic-public-key,RSA.<%= @modulus %>.<% @exponent %>"></Link>
+  <Link rel="magic-public-key" href="data:application/magic-public-key,RSA.<%= @modulus %>.<%= @exponent %>"></Link>
 </XRD>

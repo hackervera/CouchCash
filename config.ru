@@ -41,8 +41,23 @@ get "/validate" do
   @domain = domain
   @couch = couch
   arg_list = validate_db(couch)
-  arg_list.each do |ower, owed, amount|
-    response.write "#{ower} owes #{owed} #{amount}<br>"
+  receivers = {}
+  senders = {}
+  arg_list.each do |sender, receiver, amount|
+    if sender == @username
+      receivers[receiver] ||= 0
+      receivers[receiver] += amount.to_i
+    else
+      senders[sender] ||= 0
+      senders[senter] += amount.to_i
+    end
+    #response.write "#{ower} owes #{owed} #{amount}<br>"
+  end
+  receivers.each_pair do |receiver, amount|
+    response.write "You owe #{receiver} #{amount}<br>"
+  end
+  senders.each_pair do |sender, amount|
+    response.write "#{sender} owes you #{amount}<br>"
   end
   if arg_list.empty?
     response.write "No records"
@@ -54,33 +69,6 @@ end
 
 get "/owe/:wfid/:amount" do
   amount = params[:amount]
-  def get_public_key(wfid)
-    begin
-      finger = Redfinger.finger(wfid)
-    rescue Redfinger::ResourceNotFound
-      halt 403, "There are no webfinger id's at that host"
-    rescue NoMethodError
-      halt 403, "Unknown Error, please try a different webfinger id"
-    end
-    finger.links.each do |link|
-      if link["rel"] == "magic-public-key"
-        key_text = link["href"]
-        key_type, key_value = key_text.split ","
-        rsa, modulus, exponent = key_value.split "."
-        decoded_exponent = Base64.decode64(exponent.tr('-_','+/'))
-        decoded_modulus = modulus.tr('-_','+/').unpack('m').first
-        begin
-          public_key = OpenSSL::PKey::RSA.new
-          public_key.e = OpenSSL::BN.new decoded_exponent
-          public_key.n = OpenSSL::BN.new decoded_modulus
-        rescue OpenSSL::BNError
-          halt 403, "Weird key parsing error, we're working on it. Thanks"
-        end
-        return [public_key, key_value]
-      end
-    end
-    halt 403, "No key found for user"
-  end
   doc_id = UUID.new.generate
   uuid = request.cookies["openid"]
   openid = r.get "identity:#{uuid}"
@@ -89,18 +77,12 @@ get "/owe/:wfid/:amount" do
   exponent = r.get "encoded_exponent:#{username}"
   priv_key = OpenSSL::PKey::RSA.new(r.get "private_key:#{username}")
   sig = priv_key.sign(OpenSSL::Digest::SHA1.new, doc_id).unpack('H*').to_s
-  public_key, owed_key = get_public_key(params[:wfid])
-  #ower_key = public_key.public_encrypt(["RSA.#{modulus}.#{exponent}"].unpack('H*').to_s)
-
-  if public_key.nil?
-    return "That user doesn't exist.... yet"
-  end
-  puts username
-  owed_wfid = priv_key.private_encrypt(params[:wfid]).unpack('H*').to_s
-  ower_wfid = public_key.public_encrypt("#{username}@#{domain}").unpack('H*').to_s
-  amount_owed = public_key.public_encrypt(amount).unpack('H*').to_s
-  amount_ower = priv_key.private_encrypt(amount).unpack('H*').to_s
-  body = { :owed_wfid => owed_wfid, :ower_wfid => ower_wfid, :amount_owed => amount_owed, :amount_ower => amount_ower, :sig => sig }
+  public_key = get_public_key(params[:wfid])
+  to_wfid = priv_key.public_encrypt(params[:wfid]).unpack('H*').to_s
+  from_wfid = public_key.public_encrypt("#{username}@#{domain}").unpack('H*').to_s
+  amount_to = public_key.public_encrypt(amount).unpack('H*').to_s
+  amount_from = priv_key.public_encrypt(amount).unpack('H*').to_s
+  body = { :to_wfid => to_wfid, :from_wfid => from_wfid, :amount_from => amount_to, :amount_from => amount_from, :sig => sig }
   response = Typhoeus::Request.put("#{couch}/#{doc_id}", :body => body.to_json, :headers => { :content_type => "application/json" })
   redirect "/validate"
 end

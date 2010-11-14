@@ -30,66 +30,41 @@ end
 def validate_doc(doc_url)
   r = Redis.new
   json = JSON.parse(open(doc_url).read)
-  amount_owed = json["amount_owed"]
-  amount_ower = json["amount_ower"]
-  ower_wfid = json["ower_wfid"]
-  owed_wfid = json["owed_wfid"]
+  amount_to = json["amount_to"]
+  amount_from = json["amount_from"]
+  to_wfid = json["to_wfid"]
+  from_wfid = json["from_wfid"]
   sig = json["sig"]
   doc_id = json["_id"]
   priv_key = OpenSSL::PKey::RSA.new(r.get "private_key:#{@username}")
   
-  begin
-    amount = priv_key.private_decrypt([amount_owed].pack('H*'))
-    puts amount
-    person_owed = "me"
-  rescue OpenSSL::PKey::RSAError => e
-    if e.message == "padding check failed"
-      begin
-        amount = priv_key.public_decrypt([amount_owed].pack('H*'))
-      rescue
-      end
-    end
-    #puts "Catching #{e.inspect}. What is doc_id? #{doc_id}"
+  begin #decrypt amount, ignore doc if can't decrypt either amount value
+    amount_received = priv_key.private_decrypt([amount_to].pack('H*'))
+  rescue
     begin
-      amount = priv_key.private_decrypt([amount_ower].pack('H*'))
-    rescue OpenSSL::PKey::RSAError => e
-      if e.message == "padding check failed"
-        begin
-          amount = priv_key.public_decrypt([amount_ower].pack('H*'))
-        rescue
-          return nil
-        end
-      end
-      #puts "Catching #{e.inspect}. Must not be for us. Returning nil"
+      amount_sent = priv_key.private_decrypt([amount_from].pack('H*'))
+    rescue
+      return nil
     end
-    person_owed = "other"
   end
   
-  if person_owed == "me"
-    if this_user == @username
-      ower = priv_key.private_decrypt([ower_wfid].pack('H*'))
-    else
-      ower = priv_key.public_decrypt([ower_wfid].pack('H*'))
+  begin
+    receiver = priv_key.private_decrypt([to_wfid].pack('H*'))
+  rescue
+    begin
+      sender = priv_key.private_decrypt([from_wfid].pack('H*'))
+    rescue
+      return nil
     end
-    puts ower
-    owed = "#{@username}@projectdaemon.com"
-  else
-    ower = "#{@username}@projectdaemon.com"
-    
-    owed = priv_key.public_decrypt([owed_wfid].pack('H*'))
   end
-  puts ower.inspect
-  public_key = get_public_key(ower)
-  puts public_key.inspect
-  puts "#{public_key} #{sig} #{doc_id}"
   
-
+  public_key = get_public_key(sender)
   if verify_doc(public_key, sig, doc_id) == false
     puts "Failed to verify"
     return nil
   end
   
-  return [ower, owed, amount]
+  return [sender, receiver, amount]
 
 end
 
