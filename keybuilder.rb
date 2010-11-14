@@ -50,9 +50,11 @@ def validate_doc(doc_url)
   
   begin
     receiver = priv_key.private_decrypt([to_wfid].pack('H*'))
+    sender = "#{username}@#{domain}"
   rescue
     begin
       sender = priv_key.private_decrypt([from_wfid].pack('H*'))
+      receiver = "#{username}@#{domain}"
     rescue
       return nil
     end
