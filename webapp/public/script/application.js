@@ -376,7 +376,10 @@ $(function(){
     beforeclose: function() { return false; }    
   });
   $('#login-button').button({ });
-  $('#login-button').click(function() { $(this).closest('form').submit(); });
+  $('#login-form').submit(function(e) {
+    window.location = "/login?openid=http://google.com/profiles/" + $('#openid_url').val();
+    e.preventDefault();
+  });
   $('#openid_url').select();
 
   // Resize when the dialog opens/closes else it sometimes messes up the scrollbars
