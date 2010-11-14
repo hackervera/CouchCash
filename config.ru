@@ -13,6 +13,9 @@ require 'cgi'
 require 'uuid'
 require 'redfinger'
 require 'keybuilder'
+
+domain = "YOUR DOMAIN HERE"
+couch = "YOUR COUCHDB URL HERE"
 r = Redis.new
 run Sinatra::Application
 enable :sessions
@@ -28,7 +31,7 @@ end
 
 get "/validate" do
   @username = get_username
-  arg_list = validate_db("http://tyler.couchone.com/couchcash")
+  arg_list = validate_db(couch)
   arg_list.each do |ower, owed, amount|
     response.write "#{ower} owes #{owed} #{amount}<br>"
   end
@@ -85,13 +88,11 @@ get "/owe/:wfid/:amount" do
   end
   puts username
   owed_wfid = priv_key.private_encrypt(params[:wfid]).unpack('H*').to_s
-  ower_wfid = public_key.public_encrypt("#{username}@projectdaemon.com").unpack('H*').to_s
-  
+  ower_wfid = public_key.public_encrypt("#{username}@#{domain}").unpack('H*').to_s
   amount_owed = public_key.public_encrypt(amount).unpack('H*').to_s
   amount_ower = priv_key.private_encrypt(amount).unpack('H*').to_s
-  
   body = { :owed_wfid => owed_wfid, :ower_wfid => ower_wfid, :amount_owed => amount_owed, :amount_ower => amount_ower, :sig => sig }
-  response = Typhoeus::Request.put("http://tyler.couchone.com/couchcash/#{doc_id}", :body => body.to_json, :headers => { :content_type => "application/json" })
+  response = Typhoeus::Request.put("#{couch}/#{doc_id}", :body => body.to_json, :headers => { :content_type => "application/json" })
   redirect "/validate"
 end
 
@@ -133,7 +134,7 @@ get "/login" do
     halt 403, "Could not find google profile, please create a <a href='http://www.google.com/profiles' target='_blank'>google profile</a>"
   end
   
-  redirect check_id.redirect_url('http://projectdaemon.com','http://projectdaemon.com/openid_callback')
+  redirect check_id.redirect_url("http://#{domain}","http://projectdaemon.com/openid_callback")
 end
 
 get "/send_coin" do
@@ -181,7 +182,7 @@ get "/openid_callback" do
   store = OpenID::Store::Filesystem.new('openid')
   openid_session = session[:openid]
   consumer = OpenID::Consumer.new(openid_session,store)
-  openid_response = consumer.complete(request.params,"http://projectdaemon.com/openid_callback")
+  openid_response = consumer.complete(request.params,"http://#{domain}/openid_callback")
   puts openid_response.status.class
   identity = request.params["openid.identity"]
   username = request.params["openid.claimed_id"].gsub(/.+\/profiles\/(.+?)/, '\1')
@@ -196,13 +197,11 @@ get "/openid_callback" do
     uuid = `uuidgen`.strip
     r.set "uuid:#{identity}", uuid 
     r.set  "identity:#{uuid}", identity
-    
     r.set "username:#{uuid}", username
     response.set_cookie("openid", :expires =>  Time.now + 604800, :value => uuid)
     r.sadd "openid_people", identity
     balance = r.get "balance:#{identity}"
-    #return "Looks good #{username}, welcome to the site."
-    redirect "/validate"
+    haml :index, :locals => {:identity => identity}
   else
     return "Oops there was an error. We have been notified"
   end
@@ -223,7 +222,7 @@ get "/balance" do
 end
 
 get "/webfinger/:uri" do
-  @username = params[:uri].gsub(/(?:acct:)?([^@]+)@projectdaemon.com/){ $1 }
+  @username = params[:uri].gsub(/(?:acct:)?([^@]+)@#{Regexp.quote(domain)}/){ $1 }
   @modulus = r.get "encoded_modulus:#{@username}"
   if @modulus.nil?
     return "User not found"
@@ -269,5 +268,5 @@ end
 
   
 get "/" do
-  return "Welcome to Project Daemon, the federated social currency"
+  haml :index, :locals => {:identity => false}
 end

@@ -35,10 +35,8 @@ def validate_doc(doc_url)
   owed_wfid = json["owed_wfid"]
   sig = json["sig"]
   doc_id = json["_id"]
-  this_user = get_username
   priv_key = OpenSSL::PKey::RSA.new(r.get "private_key:#{@username}")
   
-  puts "#{@username} #{this_user}"
   begin
     amount = priv_key.private_decrypt([amount_owed].pack('H*'))
     puts amount
