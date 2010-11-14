@@ -39,25 +39,28 @@ def validate_doc(doc_url)
   priv_key = OpenSSL::PKey::RSA.new(r.get "private_key:#{@username}")
   
   begin #decrypt amount, ignore doc if can't decrypt either amount value
-    amount_received = priv_key.private_decrypt([amount_to].pack('H*'))
-  rescue
+    amount = priv_key.private_decrypt([amount_to].pack('H*'))
+  rescue => e
     begin
-      amount_sent = priv_key.private_decrypt([amount_from].pack('H*'))
-    rescue
+      puts e.inspect
+      amount = priv_key.private_decrypt([amount_from].pack('H*'))
+    rescue => e
+      puts e.inspect
+      puts "skipping document, couldn't get either amount"
       return nil
     end
   end
   
   begin
+    puts e.inspect
+    puts "Trying receiver with private_decrypt"
     receiver = priv_key.private_decrypt([to_wfid].pack('H*'))
-    sender = "#{username}@#{domain}"
-  rescue
-    begin
-      sender = priv_key.private_decrypt([from_wfid].pack('H*'))
-      receiver = "#{username}@#{domain}"
-    rescue
-      return nil
-    end
+    sender = "#{@username}@#{@domain}"
+  rescue => e
+    puts e.inspect
+    puts "Trying sender with private_decrypt"
+    sender = priv_key.private_decrypt([from_wfid].pack('H*'))
+    receiver = "#{@username}@#{@domain}"
   end
   
   public_key = get_public_key(sender)
@@ -66,6 +69,7 @@ def validate_doc(doc_url)
     return nil
   end
   
+  puts "#{sender} #{receiver} #{amount}"
   return [sender, receiver, amount]
 
 end

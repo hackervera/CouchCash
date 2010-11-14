@@ -41,24 +41,27 @@ get "/validate" do
   @domain = domain
   @couch = couch
   arg_list = validate_db(couch)
-  receivers = {}
-  senders = {}
+  puts arg_list
+  balance = {}
   arg_list.each do |sender, receiver, amount|
-    if sender == @username
-      receivers[receiver] ||= 0
-      receivers[receiver] += amount.to_i
+    #response.write "#{sender} owes #{receiver} #{amount}"
+    if receiver == "#{@username}@#{@domain}"
+      balance[sender] ||= 0
+      balance[sender] -= amount.to_i
     else
-      senders[sender] ||= 0
-      senders[senter] += amount.to_i
+      balance[receiver] ||= 0
+      balance[receiver] += amount.to_i
     end
-    #response.write "#{ower} owes #{owed} #{amount}<br>"
   end
-  receivers.each_pair do |receiver, amount|
-    response.write "You owe #{receiver} #{amount}<br>"
+  
+  balance.each_pair do |person, amount|
+    if amount < 0
+      response.write "#{person} owes you #{amount.abs} bucks<br>"
+    else
+      response.write "you owe #{person} #{amount} bucks<br>"
+    end
   end
-  senders.each_pair do |sender, amount|
-    response.write "#{sender} owes you #{amount}<br>"
-  end
+      
   if arg_list.empty?
     response.write "No records"
   end
@@ -82,7 +85,7 @@ get "/owe/:wfid/:amount" do
   from_wfid = public_key.public_encrypt("#{username}@#{domain}").unpack('H*').to_s
   amount_to = public_key.public_encrypt(amount).unpack('H*').to_s
   amount_from = priv_key.public_encrypt(amount).unpack('H*').to_s
-  body = { :to_wfid => to_wfid, :from_wfid => from_wfid, :amount_from => amount_to, :amount_from => amount_from, :sig => sig }
+  body = { :to_wfid => to_wfid, :from_wfid => from_wfid, :amount_to => amount_to, :amount_from => amount_from, :sig => sig }
   response = Typhoeus::Request.put("#{couch}/#{doc_id}", :body => body.to_json, :headers => { :content_type => "application/json" })
   redirect "/validate"
 end
