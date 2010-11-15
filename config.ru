@@ -23,7 +23,6 @@ require 'keybuilder'
 
 store = OpenID::Store::Memory.new
 
-
 r = Redis.new
 run Sinatra::Application
 
