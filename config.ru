@@ -190,7 +190,11 @@ get "/openid_callback" do
     end
 
     #uuid = `uuidgen`.strip
-    uuid = UUID.new.generate
+    begin
+      uuid = UUID.new.generate
+    rescue
+      uuid = Time.now.to_i
+    end
     $r.set "uuid:#{identity}", uuid 
     $r.set  "identity:#{uuid}", identity
     $r.set "username:#{uuid}", username
