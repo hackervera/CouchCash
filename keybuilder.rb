@@ -1,9 +1,5 @@
-require 'rubygems'
-require 'redfinger'
 require 'openssl'
-require 'redis'
 require 'open-uri'
-require 'json'
 
 def get_public_key(wfid)
   finger = Redfinger.finger(wfid)
