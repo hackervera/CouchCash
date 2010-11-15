@@ -30,7 +30,7 @@ def validate_doc(doc_url)
   from_wfid = json["from_wfid"]
   sig = json["sig"]
   doc_id = json["_id"]
-  priv_key = OpenSSL::PKey::RSA.new(r.get "private_key:#{@username}")
+  priv_key = OpenSSL::PKey::RSA.new($r.get "private_key:#{@username}")
   
   begin #decrypt amount, ignore doc if can't decrypt either amount value
     amount = priv_key.private_decrypt([amount_to].pack('H*'))
@@ -84,7 +84,7 @@ end
 
 def get_username
   uuid = request.cookies["openid"]
-  openid = r.get "identity:#{uuid}"
-  username = r.get "username:#{uuid}"
+  openid = $r.get "identity:#{uuid}"
+  username = $r.get "username:#{uuid}"
   return username
 end
