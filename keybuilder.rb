@@ -3,6 +3,22 @@ require 'open-uri'
 
 def get_public_key(wfid)  
   puts wfid
+  @username, host = wfid.split "@"
+  
+  if host == domain
+    @modulus = $r.get "encoded_modulus:#{@username}"
+    if @modulus.nil?
+      return "User not found"
+    end
+    @exponent = $r.get "encoded_exponent:#{@username}"
+    decoded_exponent = @exponent.tr('-_','+/').unpack('m').first
+    decoded_modulus = @modulus.tr('-_','+/').unpack('m').first
+    key = OpenSSL::PKey::RSA.new
+    key.e = OpenSSL::BN.new decoded_exponent
+    key.n = OpenSSL::BN.new decoded_modulus
+    return key
+  end
+
   finger = Redfinger.finger(wfid)
   finger.links.each do |link|
     if link["rel"] == "magic-public-key"
