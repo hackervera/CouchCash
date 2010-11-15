@@ -23,7 +23,6 @@ require 'keybuilder'
 
 store = OpenID::Store::Memory.new
 
-
 r = Redis.new
 run Sinatra::Application
 
@@ -55,10 +54,8 @@ get "/validate" do
   @domain = domain
   @couch = couch
   arg_list = validate_db(couch)
-  puts arg_list
   balance = {}
   arg_list.each do |sender, receiver, amount|
-    #response.write "#{sender} owes #{receiver} #{amount}"
     if receiver == "#{@username}@#{@domain}"
       balance[sender] ||= 0
       balance[sender] -= amount.to_i
@@ -67,20 +64,9 @@ get "/validate" do
       balance[receiver] += amount.to_i
     end
   end
-  
-  balance.each_pair do |person, amount|
-    if amount < 0
-      response.write "#{person} owes you #{amount.abs} bucks<br>"
-    else
-      response.write "you owe #{person} #{amount} bucks<br>"
-    end
-  end
       
-  if arg_list.empty?
-    response.write "No records"
-  end
-  response.write "<p>visit http://#{domain}/owe/WEBFINGER/AMOUNT to create a debt record</p>"
-  response.finish
+  content_type :json
+  balance.to_json
 end
 
 

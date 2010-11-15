@@ -87,23 +87,23 @@ $(function(){
   $('.named-collection').click(function() {
     if (dragLock.locked) return;
 
-    var collectionName = $(this).attr('id').split('-')[1],
-        displayOptions = {};
-
     $('.outline-view .selected').removeClass('selected');
     $(this).closest('li').addClass('selected');    
-    $('#project').show();
 
-    if (selectedCollectionIsNamed()) {
-      displayOptions = { show_projects: true };
-    }
-
-    TasksController.display(jQuery.map(Collection.get(collectionName) || [], function(value) {
-      return Task.find(value);
-    }), displayOptions);
-    $('.project-field').hide();
   });
 
+  $('#transaction-log').click(function(){
+    $.getJSON('/validate', function(data) {
+      $.each(data, function(person,amount) {
+        if (amount < 0) {
+          $('#content').append(person + " owes you " + amount + "bucks<br/>");
+        } else {
+          $('#content').append("you owe " + person + " " + amount + "bucks <br/>");
+        }
+      })
+    })
+  })
+  
   if (userAgentFamily != 'iOS') {
     $('.editable .field').live('blur', function(e) {
       saveEditable();
