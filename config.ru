@@ -30,7 +30,7 @@ if ENV["REDISTOGO_URL"]
 else
   $r = Redis.new
 end
-
+$r.set "domain", domain
 require 'keybuilder'
 
 

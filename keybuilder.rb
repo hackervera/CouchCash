@@ -4,7 +4,7 @@ require 'open-uri'
 def get_public_key(wfid)  
   puts wfid
   @username, host = wfid.split "@"
-  
+  domain = $r.get "domain"
   if host == domain
     @modulus = $r.get "encoded_modulus:#{@username}"
     if @modulus.nil?
