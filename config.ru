@@ -189,7 +189,8 @@ get "/openid_callback" do
       gen_keys
     end
 
-    uuid = `uuidgen`.strip
+    #uuid = `uuidgen`.strip
+    uuid = UUID.new.generate
     $r.set "uuid:#{identity}", uuid 
     $r.set  "identity:#{uuid}", identity
     $r.set "username:#{uuid}", username
