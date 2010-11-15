@@ -23,7 +23,6 @@ def verify_doc(public_key,sig,doc_id)
 end
 
 def validate_doc(doc_url)
-  r = Redis.new
   json = JSON.parse(open(doc_url).read)
   amount_to = json["amount_to"]
   amount_from = json["amount_from"]
@@ -84,7 +83,6 @@ def validate_db(db_url)
 end
 
 def get_username
-  r = Redis.new
   uuid = request.cookies["openid"]
   openid = r.get "identity:#{uuid}"
   username = r.get "username:#{uuid}"
