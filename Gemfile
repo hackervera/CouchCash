@@ -1,6 +1,7 @@
 source :gemcutter
 gem 'ezcrypto'
-gem 'sinatra'
+gem 'rack', "1.1"
+gem 'sinatra', "1.0"
 gem 'json'
 gem 'redis'
 gem 'oauth'
