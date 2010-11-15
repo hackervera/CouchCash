@@ -32,7 +32,14 @@ before do
   end
 end
 
+get "/.well-known/host-meta" do
+  @domain = domain
+  return erb :xrd
+end
+
 def apikey(uuid)
+  get "/apikey" do
+  uuid = request.cookies["openid"]
   openid = r.get "identity:#{uuid}"
   key = r.get "apikey:#{openid}"
   return key
