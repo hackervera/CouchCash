@@ -19,11 +19,18 @@ config =  YAML::load_file "config.yml"
 domain = config["domain"]
 couch = config["couch"]
 
-require 'keybuilder'
 
 store = OpenID::Store::Memory.new
 
-r = Redis.new
+if ENV["REDISTOGO_URL"]
+  uri = URI.parse(ENV["REDISTOGO_URL"])
+  r = Redis.new(:host => uri.host, :port => uri.port, :password => uri.password)
+else
+  r = Redis.new
+end
+
+require 'keybuilder'
+
 run Sinatra::Application
 
 set :views, File.dirname(__FILE__) + '/views'
@@ -162,7 +169,6 @@ end
 
 get "/openid_callback" do
   def gen_keys
-    r= Redis.new
     uuid = request.cookies["openid"]
     openid = r.get "identity:#{uuid}"
     username = r.get "username:#{uuid}"
