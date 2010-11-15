@@ -24,24 +24,6 @@ $(document).ajaxError(function(e, xhr, settings, exception) {
   }
 });
 
-Storage.ready = function() {
-  // generateExampleData();
-  // ProjectsController.displayAll();
-  resize();
-  Feedback.hide();  
-};
-
-function generateExampleData() {
-  if (Project.findAll().length === 0) {
-    var p = Project.create({ name: 'Project ' + 1, tags: 'tag1 tag2 tag3', notes: null });
-    Task.create({ 'project_id': p.id, name: 'Example task', done: false, archived: false }); 
-    var t = Task.create({ 'project_id': null, name: 'Example task to do today', done: false, archived: false });
-    Collection.set('inbox', []);
-    Collection.set('today', [t.get('id')]);
-    Collection.set('next', []);
-  }
-}
-
 // Correct widths and heights based on window size
 function resize() {
   var height = $(window).height() - $('#global-menu').height() - 11, containerWidth = $($('ul.project-header')[0]).width(),
@@ -92,37 +74,6 @@ function escapeQuotes(text) {
   return text ? text.replace(/"/g, '&quot;') : text;
 }
 
-function selectedCollectionIsNamed() {
-  return $('.outline-view .items li.selected a').hasClass('named-collection');
-}
-
-function selectedProject() {
-  return $('.outline-view .items.projects li.selected a').itemID();
-}
-
-function selectProject() {
-  var setting = Settings.get('outline-view');
-  if (setting && setting.length > 0) {
-    $(setting).trigger('click');
-  }
-
-  if ($('.outline-view .selected').length === 0) {
-    $('.outline-view .items.projects li a').first().trigger('click');
-  }
-
-  if ($('.outline-view .selected').length === 0) {
-    $('#show-today').trigger('click');
-  }
-}
-
-function hideArchiveButtonIfRequired() {
-  if ($('.todo-items .done').length > 0 && $('ul.archive li.selected').length === 0) {
-    $('#archive-tasks').closest('li').show();
-  } else {
-    $('#archive-tasks').closest('li').hide();
-  }
-}
-
 $(function(){
 
   $(window).resize(function() {
@@ -131,52 +82,7 @@ $(function(){
 
   $(window).focus(resize);
 
-  // Outline view
-  $('.outline-view ul.items a').live('click', function() {
-    if (dragLock.locked) return;
-
-    var element = $(this), selectedItem;
-    element.closest('.outline-view').find('li.selected').removeClass('selected');
-    element.parent().toggleClass('selected');
-
-    if (element.closest('ul').hasClass('projects')) {
-      ProjectsController.display(Project.find(element.itemID()), element);
-    }
-
-    selectedItem = '#' + element.attr('id');
-    if (Settings.get('outline-view') !== selectedItem) {
-      Settings.set('outline-view', selectedItem);
-    }
-    closeEditable();
-  });
-
   // Sections
-  $('#show-settings').click(function() {
-    $('#settings-feedback').html('');
-    $('.content').hide();
-    $('#settings').show();
-    $('.task-related-button').hide();
-    $('.settings-related-button').show();
-    $('.outline-view .selected').removeClass('selected');
-  });
-
-  $('.outline-view a').live('click', function() {
-    if (dragLock.locked) return;
-
-    TasksController.removeArchived();
-    $('.content').hide();
-    $('#project').show();    
-    $('.task-related-button').show();
-    $('.settings-related-button').hide();
-
-    $('#project-todo-items').addClass('todo-items');
-    $('#search-todo-items').removeClass('todo-items');
-    $('#search input').val(defaultFieldValues.search);
-
-    resize();
-    $('#delete-task').closest('li').hide(); 
-    hideArchiveButtonIfRequired();
-  });
 
   $('.named-collection').click(function() {
     if (dragLock.locked) return;
@@ -198,118 +104,6 @@ $(function(){
     $('.project-field').hide();
   });
 
-  $('#show-archive').click(function() {
-    if (dragLock.locked) return;
-
-    $('.project-field').hide();
-    TasksController.clear();
-    $('#project').show();
-
-    Feedback.info('Loading...');
-
-    // TODO: Paginate
-    jQuery.getJSON('/storage/archive', function(data) {
-      Feedback.hide();
-      var tasks = [];
-      jQuery.each(data, function() {
-        this.id = this._id;
-        Storage.data.tasks[this.id] = this;
-        tasks.push(Task.find(this.id));
-      });
-      if (tasks && tasks.length > 0) {
-        TasksController.display(tasks, { show_projects: true });
-      } else {
-        Feedback.info('No tasks have been archived.');
-      }
-    });
-  });
-
-  // State change (done)
-  $('.project-field .state').live('click', function() {
-    $('.todo-items .state').each(function() {
-      var element = $(this);
-      if (!element.hasClass('done')) {
-        element.trigger('click');
-      }
-    });
-
-    var project = Project.find(selectedProject());
-    project.set('done', true);
-    ProjectsController.displayState(project);
-  });
-
-  $('#delete-task').click(function() {
-    TasksController.destroy($('.todo-items .highlight').closest('li'));
-    TasksController.destroy($('.todo-items li.task.details'));
-    $('#delete-task').closest('li').hide();
-  });
-
-  $('#archive-tasks').click(function() {
-    TasksController.archive($('.todo-items .done').parents('li.task'));
-  });
-
-  $('.editable-field').live('click', function(e) {
-    var element = $(this),
-        content,
-        datePicker,
-        closestDate,
-        input,
-        container = element.closest('li.task');
-
-    if (e.target.nodeName === 'INPUT' || e.target.nodeName === 'FORM') return true;
-    if (element.find('form').length > 0) return true;
-
-    closeEditable(element);
-
-    if (element.find('form').length === 0) {
-      if (element.hasClass('type-date')) {
-        if (container.length > 0) {
-          closestDate = Task.find(container.itemID()).get('due');
-        } else {
-          closestDate = Project.find(selectedProject()).get('due');
-        }
-
-        $('.content').first().append('<div id="datepicker"></div>');
-        datePicker = $('#datepicker').datepicker({ autoSize: true, onSelect: function(value) { datePickerSave(value, element, this); }, defaultDate: parseDate(closestDate) });
-        datePicker.css({ 'position': 'absolute', 'z-index': 99, 'left': element.offset().left, 'top': element.offset().top });
-      } else {
-        try {
-          if (content === defaultFieldValues[element.attr('name')]) {
-            content = '';
-          } else if (container.itemID()) {
-            content = Task.find(container.itemID()).get(element.attr('name'));
-          } else {
-            var projectFieldName = element.attr('name').split(/project_/),
-                projectID = $('.outline-view li.selected a').itemID();
-            content = Project.find(projectID).get(projectFieldName[1]);
-          }
-
-          if (!content) content = '';
-
-          if (element.hasClass('large')) {
-            input = '<textarea class="editable field" rows="6">' + content + '</textarea>';
-          } else {
-            input = '<input type="text" class="editable field" value="' + escapeQuotes(content) + '" />';
-          }
-          element.html('<form class="editable">' + input + '</form>').find('.field').trigger('focus');
-          originalEditableValue = content;
-        } catch (exception) {
-          console.log(exception);
-        }
-      }
-    }
-  });
-
-  $('.clear-due').live('click', function(e) {
-    var element = $(this);
-    var task = Task.find(element.closest('.task').itemID());
-    task.set('due', null);
-    element.closest('li').html(defaultFieldValues.due);
-    element.remove();
-    e.preventDefault();
-    return false;
-  });
-
   if (userAgentFamily != 'iOS') {
     $('.editable .field').live('blur', function(e) {
       saveEditable();
@@ -325,35 +119,6 @@ $(function(){
       }
     });
   }
-
-  // Delete project dialog
-  $('#delete-project-dialog').dialog({
-    autoOpen: false,
-    width: 600,
-    buttons: {
-     'OK': function() { 
-        $(this).dialog('close'); 
-        Project.destroy(selectedProject());
-        ProjectsController.displayAll();
-        $('a.named-collection').first().click();
-      }, 
-      'Cancel': function() { 
-        $(this).dialog('close'); 
-      } 
-    },
-    modal: true
-  });
-
-  $('#export-text-dialog').dialog({
-    autoOpen: false,
-    width: 600,
-    buttons: {
-     'OK': function() { 
-        $(this).dialog('close'); 
-      }, 
-    },
-    modal: true
-  });
 
   // Modal login panel
   $('#login-dialog').dialog({
@@ -446,85 +211,10 @@ $(function(){
   // Setup
 
   $('.add-button').button({ icons: { primary: 'ui-icon-circle-arrow-e' } });
-  $('#delete-task').button({ icons: { primary: 'ui-icon-trash' } });
-  $('#archive-tasks').button({ icons: { primary: 'ui-icon-arrowreturnthick-1-e' } });
-  $('#show-settings').button({ icons: { primary: 'ui-icon-gear' } });
   $('#logout').button({ icons: { primary: 'ui-icon-power' } });
-  $('#search').button({ icons: { primary: 'ui-icon-search' } });
 
   // disableTextSelect works better than disableSelection
   $('.content-divider').disableTextSelect();
 
-  $('.todo-items .done').addClass('ui-state-disabled');
-
-  $('#tabs').tabs();
-
-  // Today droppable
-  $('#show-today').droppable({
-    hoverClass: 'hover-drag',
-    dragClass: 'dragging',
-    accept: '.task',
-    drop: function(e, ui) {
-      var taskElement = $(e.srcElement).closest('.task'),
-          task = Task.find(taskElement.itemID());
-
-      // Add to today
-      if (task) {
-        Collection.appendItem('today', task.get('id'));
-        taskElement.find('.ui-icon-todo').addClass('ui-icon-todo-today');
-
-        // Remove from inbox
-        Collection.removeItem('inbox', task.get('id'));
-
-        if ($('#show-inbox').closest('li').hasClass('selected')) {
-          taskElement.remove();
-        }
-      }      
-
-      dragLock.timedUnlock();
-    }
-  });
-
-  $('#show-inbox').droppable({
-    hoverClass: 'hover-drag',
-    dragClass: 'dragging',
-    accept: '.task',
-    drop: function(e, ui) {
-      var taskElement = $(e.srcElement).closest('.task'),
-          task = Task.find(taskElement.itemID()),
-          projectCollection;
-
-      // Add to inbox
-      if (task) {
-        // Remove from today/projects
-        Collection.removeItem('today', task.get('id'));
-
-        if (task.get('project_id')) {
-          Collection.removeItem('project_tasks_' + task.get('project_id'), task.get('id'));
-        }
-
-        // Add to inbox
-        Collection.appendItem('inbox', task.get('id'));
-        task.set('project_id', null);
-
-        if (taskElement) taskElement.remove();
-      }
-
-      dragLock.timedUnlock();
-    }
-  });
-
-  // This is used by the settings form
-  $('form.settings_form').submit(function(e) {
-    $('#settings-feedback').html('');
-    var target = $(e.target);
-    jQuery.post(target.attr('action'), target.serialize(), function() {
-      $('#settings-feedback').html(Feedback.message('info', 'Your details have been changed'));    
-    });
-    e.preventDefault();
-    return false;
-  });
-
-  $('.project-field').hide();
   resize();
 });
