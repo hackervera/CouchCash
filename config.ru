@@ -24,6 +24,9 @@ require 'keybuilder'
 r = Redis.new
 run Sinatra::Application
 
+set :views, File.dirname(__FILE__) + '/views'
+set :public, File.dirname(__FILE__) + '/public'
+
 enable :sessions
 
 before do
