@@ -1,9 +1,8 @@
 require 'openssl'
 require 'open-uri'
 
-def get_public_key(wfid)
+def get_public_key(wfid)  
   finger = Redfinger.finger(wfid)
-  puts finger.links
   finger.links.each do |link|
     if link["rel"] == "magic-public-key"
       key_text = link["href"]
@@ -75,7 +74,6 @@ def validate_db(db_url)
   list_of_args = []
   all_docs.each do |doc|
     doc_id = doc["id"]
-    
     vals = validate_doc("#{@couch}/#{doc_id}") 
     if vals.nil?
       next
@@ -92,5 +90,3 @@ def get_username
   username = r.get "username:#{uuid}"
   return username
 end
-
-

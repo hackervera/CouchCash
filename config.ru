@@ -54,10 +54,8 @@ get "/validate" do
   @domain = domain
   @couch = couch
   arg_list = validate_db(couch)
-  puts arg_list
   balance = {}
   arg_list.each do |sender, receiver, amount|
-    #response.write "#{sender} owes #{receiver} #{amount}"
     if receiver == "#{@username}@#{@domain}"
       balance[sender] ||= 0
       balance[sender] -= amount.to_i
