@@ -1,6 +1,7 @@
 source :gemcutter
 gem 'ezcrypto'
 gem 'sinatra'
+gem 'json'
 gem 'redis'
 gem 'oauth'
 gem 'ruby-openid'
