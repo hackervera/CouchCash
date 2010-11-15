@@ -7,7 +7,7 @@ require 'redis'
 require 'json'
 require 'oauth'
 require 'openid'
-require 'openid/store/filesystem'
+require 'openid/store/memcache'
 require 'typhoeus'
 require 'base64'
 require 'cgi'
@@ -127,7 +127,7 @@ end
 
 get "/login" do
   identifier = request.params["openid"]
-  store = OpenID::Store::Filesystem.new('openid')
+  store = OpenID::Store::Memcache.new('openid')
   openid_session = {}
   session[:openid] = openid_session
   consumer = OpenID::Consumer.new(openid_session,store)
