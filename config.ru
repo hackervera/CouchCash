@@ -7,7 +7,7 @@ require 'redis'
 require 'json'
 require 'oauth'
 require 'openid'
-require 'openid/store/filesystem'
+require 'openid/store/memory'
 require 'typhoeus'
 require 'base64'
 require 'cgi'
@@ -20,6 +20,9 @@ domain = config["domain"]
 couch = config["couch"]
 
 require 'keybuilder'
+
+store = OpenID::Store::Memory.new
+
 
 r = Redis.new
 run Sinatra::Application
@@ -127,7 +130,6 @@ end
 
 get "/login" do
   identifier = request.params["openid"]
-  store = OpenID::Store::Filesystem.new('openid')
   openid_session = {}
   session[:openid] = openid_session
   consumer = OpenID::Consumer.new(openid_session,store)
@@ -181,7 +183,6 @@ get "/openid_callback" do
     puts encoded_modulus
   end
 
-  store = OpenID::Store::Filesystem.new('openid')
   openid_session = session[:openid]
   consumer = OpenID::Consumer.new(openid_session,store)
   openid_response = consumer.complete(request.params,"http://#{domain}/openid_callback")
