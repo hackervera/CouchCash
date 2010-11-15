@@ -12,13 +12,24 @@ require 'base64'
 require 'cgi'
 require 'uuid'
 require 'redfinger'
+require 'yaml'
+
+config =  YAML::load_file "config.yml"
+domain = config["domain"]
+puts domain
+couch = config["couch"]
+
+
 require 'keybuilder'
 
 domain = "YOUR DOMAIN"
 couch = "YOUR COUCHDB"
+
 r = Redis.new
 run Sinatra::Application
 enable :sessions
+
+
 
 get "/apikey" do
   uuid = request.cookies["openid"]
@@ -29,46 +40,40 @@ end
 
 get "/validate" do
   @username = get_username
+  @domain = domain
+  @couch = couch
   arg_list = validate_db(couch)
-  arg_list.each do |ower, owed, amount|
-    response.write "#{ower} owes #{owed} #{amount}<br>"
+  puts arg_list
+  balance = {}
+  arg_list.each do |sender, receiver, amount|
+    #response.write "#{sender} owes #{receiver} #{amount}"
+    if receiver == "#{@username}@#{@domain}"
+      balance[sender] ||= 0
+      balance[sender] -= amount.to_i
+    else
+      balance[receiver] ||= 0
+      balance[receiver] += amount.to_i
+    end
   end
+  
+  balance.each_pair do |person, amount|
+    if amount < 0
+      response.write "#{person} owes you #{amount.abs} bucks<br>"
+    else
+      response.write "you owe #{person} #{amount} bucks<br>"
+    end
+  end
+      
   if arg_list.empty?
     response.write "No records"
   end
+  response.write "<p>visit http://projectdaemon.com/owe/WEBFINGER/AMOUNT to create a debt record</p>"
   response.finish
 end
 
 
 get "/owe/:wfid/:amount" do
   amount = params[:amount]
-  def get_public_key(wfid)
-    begin
-      finger = Redfinger.finger(wfid)
-    rescue Redfinger::ResourceNotFound
-      halt 403, "There are no webfinger id's at that host"
-    rescue NoMethodError
-      halt 403, "Unknown Error, please try a different webfinger id"
-    end
-    finger.links.each do |link|
-      if link["rel"] == "magic-public-key"
-        key_text = link["href"]
-        key_type, key_value = key_text.split ","
-        rsa, modulus, exponent = key_value.split "."
-        decoded_exponent = Base64.decode64(exponent.tr('-_','+/'))
-        decoded_modulus = modulus.tr('-_','+/').unpack('m').first
-        begin
-          public_key = OpenSSL::PKey::RSA.new
-          public_key.e = OpenSSL::BN.new decoded_exponent
-          public_key.n = OpenSSL::BN.new decoded_modulus
-        rescue OpenSSL::BNError
-          halt 403, "Weird key parsing error, we're working on it. Thanks"
-        end
-        return [public_key, key_value]
-      end
-    end
-    halt 403, "No key found for user"
-  end
   doc_id = UUID.new.generate
   uuid = request.cookies["openid"]
   openid = r.get "identity:#{uuid}"
@@ -77,17 +82,12 @@ get "/owe/:wfid/:amount" do
   exponent = r.get "encoded_exponent:#{username}"
   priv_key = OpenSSL::PKey::RSA.new(r.get "private_key:#{username}")
   sig = priv_key.sign(OpenSSL::Digest::SHA1.new, doc_id).unpack('H*').to_s
-  public_key, owed_key = get_public_key(params[:wfid])
-  #ower_key = public_key.public_encrypt(["RSA.#{modulus}.#{exponent}"].unpack('H*').to_s)
-
-  if public_key.nil?
-    return "That user doesn't exist.... yet"
-  end
-  owed_wfid = priv_key.private_encrypt(params[:wfid]).unpack('H*').to_s
-  ower_wfid = public_key.public_encrypt("#{username}@#{domain}").unpack('H*').to_s
-  amount_owed = public_key.public_encrypt(amount).unpack('H*').to_s
-  amount_ower = priv_key.private_encrypt(amount).unpack('H*').to_s
-  body = { :owed_wfid => owed_wfid, :ower_wfid => ower_wfid, :amount_owed => amount_owed, :amount_ower => amount_ower, :sig => sig }
+  public_key = get_public_key(params[:wfid])
+  to_wfid = priv_key.public_encrypt(params[:wfid]).unpack('H*').to_s
+  from_wfid = public_key.public_encrypt("#{username}@#{domain}").unpack('H*').to_s
+  amount_to = public_key.public_encrypt(amount).unpack('H*').to_s
+  amount_from = priv_key.public_encrypt(amount).unpack('H*').to_s
+  body = { :to_wfid => to_wfid, :from_wfid => from_wfid, :amount_to => amount_to, :amount_from => amount_from, :sig => sig }
   response = Typhoeus::Request.put("#{couch}/#{doc_id}", :body => body.to_json, :headers => { :content_type => "application/json" })
   redirect "/validate"
 end
@@ -124,8 +124,13 @@ get "/login" do
   openid_session = {}
   session[:openid] = openid_session
   consumer = OpenID::Consumer.new(openid_session,store)
-  check_id = consumer.begin(identifier)
-  redirect check_id.redirect_url("http://#{domain}","http://#{domain}/openid_callback")
+  begin
+    check_id = consumer.begin(identifier)
+  rescue OpenID::DiscoveryFailure
+    halt 403, "Could not find google profile, please create a <a href='http://www.google.com/profiles' target='_blank'>google profile</a>"
+  end
+  
+  redirect check_id.redirect_url("http://#{domain}","http://projectdaemon.com/openid_callback")
 end
 
 get "/send_coin" do
@@ -176,8 +181,9 @@ get "/openid_callback" do
   openid_response = consumer.complete(request.params,"http://#{domain}/openid_callback")
   puts openid_response.status.class
   identity = request.params["openid.identity"]
+  username = request.params["openid.claimed_id"].gsub(/.+\/profiles\/(.+?)/, '\1')
   if openid_response.status == :success
-    old_ident = r.get "uuid:#{identity}"
+    old_ident = r.get "private_key:#{username}"
     puts old_ident
     if old_ident.nil?
       puts "generating keys"
@@ -187,7 +193,6 @@ get "/openid_callback" do
     uuid = `uuidgen`.strip
     r.set "uuid:#{identity}", uuid 
     r.set  "identity:#{uuid}", identity
-    username = request.params["openid.claimed_id"].gsub(/.+\/profiles\/(.+?)/, '\1')
     r.set "username:#{uuid}", username
     response.set_cookie("openid", :expires =>  Time.now + 604800, :value => uuid)
     r.sadd "openid_people", identity

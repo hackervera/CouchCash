@@ -7,6 +7,7 @@ require 'json'
 
 def get_public_key(wfid)
   finger = Redfinger.finger(wfid)
+  puts finger.links
   finger.links.each do |link|
     if link["rel"] == "magic-public-key"
       key_text = link["href"]
@@ -29,53 +30,57 @@ end
 def validate_doc(doc_url)
   r = Redis.new
   json = JSON.parse(open(doc_url).read)
-  amount_owed = json["amount_owed"]
-  amount_ower = json["amount_ower"]
-  ower_wfid = json["ower_wfid"]
-  owed_wfid = json["owed_wfid"]
+  amount_to = json["amount_to"]
+  amount_from = json["amount_from"]
+  to_wfid = json["to_wfid"]
+  from_wfid = json["from_wfid"]
   sig = json["sig"]
   doc_id = json["_id"]
-  priv_key = OpenSSL::PKey::RSA.new(r.get "private_key:tjgillies")
+  priv_key = OpenSSL::PKey::RSA.new(r.get "private_key:#{@username}")
   
-  begin
-    amount = priv_key.private_decrypt([amount_owed].pack('H*'))
-    person_owed = "me"
-  rescue OpenSSL::PKey::RSAError => e
-    puts "Catching #{e.inspect}. What is doc_id? #{doc_id}"
+  begin #decrypt amount, ignore doc if can't decrypt either amount value
+    amount = priv_key.private_decrypt([amount_to].pack('H*'))
+  rescue => e
     begin
-      amount = priv_key.private_decrypt([amount_ower].pack('H*'))
-    rescue OpenSSL::PKey::RSAError => e
-      puts "Catching #{e.inspect}. Must not be for us. Returning nil"
+      puts e.inspect
+      amount = priv_key.private_decrypt([amount_from].pack('H*'))
+    rescue => e
+      puts e.inspect
+      puts "skipping document, couldn't get either amount"
       return nil
     end
-    person_owed = "other"
   end
   
-  if person_owed == "me"
-    ower = priv_key.private_decrypt([ower_wfid].pack('H*'))
-    owed = "#{@username}@projectdaemon.com"
-    public_key = get_public_key(ower)
-  else
-    ower = "#{@username}@projectdaemon.com"
-    public_key = get_public_key(owed)
-    owed = priv_key.private_decrypt([owed_wfid].pack('H*'))
+  begin
+    puts e.inspect
+    puts "Trying receiver with private_decrypt"
+    receiver = priv_key.private_decrypt([to_wfid].pack('H*'))
+    sender = "#{@username}@#{@domain}"
+  rescue => e
+    puts e.inspect
+    puts "Trying sender with private_decrypt"
+    sender = priv_key.private_decrypt([from_wfid].pack('H*'))
+    receiver = "#{@username}@#{@domain}"
   end
   
+  public_key = get_public_key(sender)
   if verify_doc(public_key, sig, doc_id) == false
+    puts "Failed to verify"
     return nil
   end
   
-  return [ower, owed, amount]
+  puts "#{sender} #{receiver} #{amount}"
+  return [sender, receiver, amount]
 
 end
 
 def validate_db(db_url)
-  all_docs = JSON.parse(open("#{db_url}/_all_docs").read)["rows"]
+  all_docs = JSON.parse(open("#{@couch}/_all_docs").read)["rows"]
   list_of_args = []
   all_docs.each do |doc|
     doc_id = doc["id"]
     
-    vals = validate_doc("#{db_url}/#{doc_id}") 
+    vals = validate_doc("#{@couch}/#{doc_id}") 
     if vals.nil?
       next
     end

@@ -1,0 +1,18 @@
+<script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js'></script>
+<script>
+$(function(){$("form").submit(function(e){
+//console.log(e);
+e.preventDefault();
+do_login();
+})});
+function do_login(){
+  
+  window.location.href="/login?openid=http://www.google.com/profiles/"+$("#login_name").val();
+}
+</script>
+
+<form>
+Enter google name:<br>
+<input type="text" name="openid" id="login_name"><br>
+<input type="submit" value="go">
+</form >
