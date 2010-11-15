@@ -22,7 +22,6 @@ couch = config["couch"]
 
 require 'keybuilder'
 
-
 r = Redis.new
 run Sinatra::Application
 enable :sessions
