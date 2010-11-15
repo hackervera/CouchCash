@@ -19,17 +19,11 @@ domain = config["domain"]
 puts domain
 couch = config["couch"]
 
-
 require 'keybuilder'
-
-domain = "YOUR DOMAIN"
-couch = "YOUR COUCHDB"
 
 r = Redis.new
 run Sinatra::Application
 enable :sessions
-
-
 
 get "/apikey" do
   uuid = request.cookies["openid"]
@@ -67,7 +61,7 @@ get "/validate" do
   if arg_list.empty?
     response.write "No records"
   end
-  response.write "<p>visit http://projectdaemon.com/owe/WEBFINGER/AMOUNT to create a debt record</p>"
+  response.write "<p>visit http://#{domain}/owe/WEBFINGER/AMOUNT to create a debt record</p>"
   response.finish
 end
 
@@ -130,7 +124,7 @@ get "/login" do
     halt 403, "Could not find google profile, please create a <a href='http://www.google.com/profiles' target='_blank'>google profile</a>"
   end
   
-  redirect check_id.redirect_url("http://#{domain}","http://projectdaemon.com/openid_callback")
+  redirect check_id.redirect_url("http://#{domain}","http://#{domain}/openid_callback")
 end
 
 get "/send_coin" do
