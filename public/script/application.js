@@ -42,15 +42,6 @@ function generateExampleData() {
   }
 }
 
-if ($('#login-dialog').length === 0) {
-  Feedback.info('Loading...');
-  Storage.remote.read();
-} else {
-  $('#OpenIDHelpLink').click(function() {
-    $('.open-id-help').toggle();
-  });
-}
-
 // Correct widths and heights based on window size
 function resize() {
   var height = $(window).height() - $('#global-menu').height() - 11, containerWidth = $($('ul.project-header')[0]).width(),
@@ -453,11 +444,6 @@ $(function(){
   })();
 
   // Setup
-  
-  TasksController.installEvents();
-  ProjectsController.installEvents();
-  SearchController.installEvents();
-  initKeyboardHandlers();
 
   $('.add-button').button({ icons: { primary: 'ui-icon-circle-arrow-e' } });
   $('#delete-task').button({ icons: { primary: 'ui-icon-trash' } });
@@ -470,14 +456,6 @@ $(function(){
   $('.content-divider').disableTextSelect();
 
   $('.todo-items .done').addClass('ui-state-disabled');
-
-  $('#project-todo-items').sortable({
-    handle: '.handle',
-    stop: function(e, ui) { dragLock.unlock(); TasksController.saveSort(e, ui); },
-    revert: true,
-    start: function(e, ui) { dragLock.lock(); $(ui.item).addClass('dragging'); }
-  }).disableSelection();
-  $('.outline-view ul .projects').sortable({ stop: ProjectsController.saveSort }).disableSelection();
 
   $('#tabs').tabs();
 
