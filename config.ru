@@ -1,4 +1,6 @@
 require 'rubygems'
+require 'bundler'
+Bundler.require
 require 'ezcrypto'
 require 'ezsig'
 require 'sinatra'
