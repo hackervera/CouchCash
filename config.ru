@@ -16,14 +16,21 @@ require 'yaml'
 
 config =  YAML::load_file "config.yml"
 domain = config["domain"]
-puts domain
 couch = config["couch"]
 
 require 'keybuilder'
 
 r = Redis.new
 run Sinatra::Application
+
 enable :sessions
+
+before do
+  if request.cookies["openid"]
+    uuid = request.cookies["openid"]
+    @username = (r.get "identity:#{uuid}").split('/')[-1]
+  end
+end
 
 get "/apikey" do
   uuid = request.cookies["openid"]
@@ -33,7 +40,6 @@ get "/apikey" do
 end
 
 get "/validate" do
-  @username = get_username
   @domain = domain
   @couch = couch
   arg_list = validate_db(couch)
@@ -111,9 +117,7 @@ get "/trade" do
 end
 
 get "/login" do
-
   identifier = request.params["openid"]
-  
   store = OpenID::Store::Filesystem.new('openid')
   openid_session = {}
   session[:openid] = openid_session
@@ -123,7 +127,6 @@ get "/login" do
   rescue OpenID::DiscoveryFailure
     halt 403, "Could not find google profile, please create a <a href='http://www.google.com/profiles' target='_blank'>google profile</a>"
   end
-  
   redirect check_id.redirect_url("http://#{domain}","http://#{domain}/openid_callback")
 end
 
@@ -173,12 +176,10 @@ get "/openid_callback" do
   openid_session = session[:openid]
   consumer = OpenID::Consumer.new(openid_session,store)
   openid_response = consumer.complete(request.params,"http://#{domain}/openid_callback")
-  puts openid_response.status.class
   identity = request.params["openid.identity"]
   username = request.params["openid.claimed_id"].gsub(/.+\/profiles\/(.+?)/, '\1')
   if openid_response.status == :success
     old_ident = r.get "private_key:#{username}"
-    puts old_ident
     if old_ident.nil?
       puts "generating keys"
       gen_keys
@@ -191,7 +192,7 @@ get "/openid_callback" do
     response.set_cookie("openid", :expires =>  Time.now + 604800, :value => uuid)
     r.sadd "openid_people", identity
     balance = r.get "balance:#{identity}"
-    haml :index, :locals => {:identity => identity}
+    redirect "/"
   else
     return "Oops there was an error. We have been notified"
   end
@@ -256,7 +257,15 @@ get "/transfer" do
   return { :type => "success", :from => identity, :to => to, :amount => amount }.to_json
 end
 
+get "/logout" do
+  response.delete_cookie('openid')
+  redirect "/"
+end
   
 get "/" do
-  haml :index, :locals => {:identity => false}
+  identity = false
+  unless @username.nil?
+    identity = @username
+  end
+  haml :index, :locals => {:identity => identity}
 end

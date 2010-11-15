@@ -51,19 +51,6 @@
             %li
               %a#show-today.named-collection{:href => "#"} Contact List
     .content-divider
-    #settings.content{:style => "display: none"}
-      .title
-        %h1 Settings
-      .container
-        #tabs
-          %ul
-            %li
-              %a{:href => "#tabs-1"} Your Account
-          #tabs-1
-            %h2 Account Details
-            %p Change your account details here.
-            #settings-feedback
-            %br{:clear => "all"}/
     #global-menu.ui-state-default
       %ul
         %li.task-related-button
@@ -72,8 +59,6 @@
           #delete-task.task.delete-button Delete Task
         %li.task-related-button{:style => "display: none"}
           #archive-tasks.task.archive-button Archive
-        %li.settings-related-button.right.red-button{:style => "display: none"}
+        %li.settings-related-button.right.red-button
           %a{:href => "/logout"}/
           #logout Logout
-        %li.task-related-button.right
-          #show-settings.settings-button Settings
