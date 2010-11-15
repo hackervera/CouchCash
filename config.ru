@@ -32,8 +32,7 @@ before do
   end
 end
 
-get "/apikey" do
-  uuid = request.cookies["openid"]
+def apikey(uuid)
   openid = r.get "identity:#{uuid}"
   key = r.get "apikey:#{openid}"
   return key
@@ -199,17 +198,15 @@ get "/openid_callback" do
 end
 
 get "/balance" do
-  apikey = request.params["apikey"]
+  content_type :json
+  apikey = apikey(request.cookies["openid"])
   identity = r.get "apikey_user:#{apikey}"
-  
   if identity
     balance = r.get("balance:#{identity}").to_i
     return { :type => "success", :balance => balance, :identity => identity }.to_json
   else
     return { :type => "error", :message => "could not verify identity" }.to_json
   end
-  
-  
 end
 
 get "/webfinger/:uri" do
@@ -247,7 +244,6 @@ get "/transfer" do
       to_balance = to_balance.to_i + amount.to_i
       puts to_balance
       r.set "balance:#{to}", to_balance
-      
     else
       return { :type => "error", :message => "#{to} doesn't exist in system" }.to_json
     end
