@@ -38,7 +38,6 @@ get "/.well-known/host-meta" do
 end
 
 def apikey(uuid)
-  get "/apikey" do
   uuid = request.cookies["openid"]
   openid = r.get "identity:#{uuid}"
   key = r.get "apikey:#{openid}"
