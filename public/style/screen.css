@@ -9,6 +9,52 @@ h1, h2, h3, h4, h5, h6 { margin: 0; padding: 0 }
 #global-menu ul li form { margin: 0; padding: 0 }
 #global-menu ul li form input { margin: 0; }
 
+#send-money-form {
+  padding: 0 20px 20px 20px;
+  font-family: Helvetica, Arial;
+  font-size: 12pt; }
+  #send-money-form legend {
+    color: #333333;
+    padding: 0 0 20px 0;
+    text-transform: uppercase; }
+  #send-money-form fieldset input, #send-money-form fieldset textarea {
+    font-family: Helvetica, Arial;
+    font-size: 12pt; }
+  #send-money-form label {
+    font-family: Helvetica, Arial;
+    font-size: 12pt; }
+  #send-money-form p {
+    position: relative;
+    margin: 10px 0; }
+    #send-money-form p label {
+      position: absolute;
+      top: 0;
+      left: 0; }
+    #send-money-form p br {
+      display: none; }
+  #send-money-form fieldset p input, #send-money-form fieldset p textarea {
+    display: block;
+    padding: 4px;
+    width: 400px;
+    margin: 0; }
+  #send-money-form fieldset p label {
+    width: 380px;
+    display: block;
+    margin: 5px 5px 5px 6px;
+    padding: 0; }
+  #send-money-form fieldset p textarea {
+    padding: 2px;
+    width: 404px;
+    border: solid 1px #cccccc; }
+  #send-money-form fieldset p input {
+    border: solid 1px #cccccc; }
+  #send-money-form fieldset {
+    border: none;
+  }
+  #send-money-form fieldset p label {
+    color: #777777; }
+
+
 .loader {width: 40px; margin: 0 auto; padding-top: 20%;}
 
 .container h2 { margin-top: 10px }
