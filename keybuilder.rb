@@ -2,20 +2,24 @@ require 'openssl'
 require 'open-uri'
 
 def get_public_key(wfid)  
-  puts wfid
+ 
   @username, host = wfid.split "@"
+  puts "Username #{@username}"
   domain = $r.get "domain"
+  
   if host == domain
     @modulus = $r.get "encoded_modulus:#{@username}"
     if @modulus.nil?
       return "User not found"
     end
     @exponent = $r.get "encoded_exponent:#{@username}"
+    
     decoded_exponent = @exponent.tr('-_','+/').unpack('m').first
     decoded_modulus = @modulus.tr('-_','+/').unpack('m').first
     key = OpenSSL::PKey::RSA.new
     key.e = OpenSSL::BN.new decoded_exponent
     key.n = OpenSSL::BN.new decoded_modulus
+    puts key.inspect
     return key
   end
 
@@ -30,12 +34,16 @@ def get_public_key(wfid)
       key = OpenSSL::PKey::RSA.new
       key.e = OpenSSL::BN.new decoded_exponent
       key.n = OpenSSL::BN.new decoded_modulus
+      puts key.class
+      puts "Testing key"
       return key
     end
   end
+  puts "getting to end"
 end
 
 def verify_doc(public_key,sig,doc_id)
+  puts public_key.inspect
   return public_key.verify(OpenSSL::Digest::SHA1.new, [sig].pack('H*'), doc_id)
 end
 

@@ -10,3 +10,4 @@ gem 'typhoeus'
 gem 'uuid'
 gem 'redfinger', :git => "git://github.com/maxogden/redfinger.git"
 gem 'haml'
+gem 'SystemTimer'
