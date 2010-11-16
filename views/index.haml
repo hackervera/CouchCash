@@ -1,0 +1,56 @@
+!!!
+%html
+  %head
+    %meta{:content => "text/html; charset=iso-8859-1", "http-equiv" => "Content-Type"}
+    %title CouchCash
+    %link{:href => "/style/aristo.css", :rel => "stylesheet", :type => "text/css"}
+    %link{:href => "/style/screen.css", :rel => "stylesheet", :type => "text/css"}
+    %link{:href => "/style/ipad.css", :media => "only screen and (max-device-width: 1024px)", :rel => "stylesheet", :type => "text/css"}
+    %link{:href => "/style/iphone.css", :media => "only screen and (max-device-width: 480px)", :rel => "stylesheet", :type => "text/css"}
+    %link{:href => "/favicon.ico", :rel => "shortcut icon"}
+    %script{:src => "/script/lib/json2.js"}
+    %script{:src => "/script/lib/jquery.min.js"}
+    %script{:src => "/script/lib/jquery-ui.min.js"}
+    %script{:src => "/script/jquery-extensions.js"}
+    %script{:src => "/script/reusable/lock.js"}
+    %script{:src => "/script/reusable/feedback.js"}
+    %script{:src => "/script/application.js"}
+  %body
+    - unless identity
+      #login-dialog
+        %form#login-form
+          %p Enter your Google username to sign in using OpenID.
+          %p
+            %input#openid_url{:name => "name", :type => "text"}
+              @gmail.com
+          %p
+            %a#login-button{:href => "#"} Login
+    .outline-view
+      %ul
+        %li
+          %h2 Balance
+        %li
+          %ul.items
+            %li
+              %a#overview.named-collection{:href => "#"} Overview
+            %li
+              %a#transaction-log.named-collection{:href => "#"} Transaction Log
+        %li
+          %h2 Connect
+        %li
+          %ul.items
+            %li
+              %a#show-today.named-collection{:href => "#"} Contact List
+    .content-divider
+    #content
+    #global-menu.ui-state-default
+      %ul
+        %li.task-related-button
+          .task.add-button Send Money
+        %li.task-related-button{:style => "display: none"}
+          #delete-task.task.delete-button Delete Task
+        %li.task-related-button{:style => "display: none"}
+          #archive-tasks.task.archive-button Archive
+        %li.settings-related-button.right.red-button
+          %a{:href => "/logout"}
+          #logout Logout

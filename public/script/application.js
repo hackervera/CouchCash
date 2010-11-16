@@ -100,15 +100,13 @@ $(function(){
     $('.project-header').html('')
   }
 
-  $('#overview').click(function(){
-    showLoader();
+  $('#transaction-log').click(function(){
     $.getJSON('/validate', function(data) {
-      hideLoader();
-      $.each(data, function(person,amount) {        
+      $.each(data, function(person,amount) {
         if (amount < 0) {
-          showCredit({person: person, amount: amount});
+          $('#content').append(person + " owes you " + amount + "bucks<br/>");
         } else {
-          showDebt({person: person, amount: amount});
+          $('#content').append("you owe " + person + " " + amount + "bucks <br/>");
         }
       })
     })

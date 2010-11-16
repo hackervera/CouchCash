@@ -2,6 +2,23 @@ require 'openssl'
 require 'open-uri'
 
 def get_public_key(wfid)  
+  puts wfid
+  @username, host = wfid.split "@"
+  domain = $r.get "domain"
+  if host == domain
+    @modulus = $r.get "encoded_modulus:#{@username}"
+    if @modulus.nil?
+      return "User not found"
+    end
+    @exponent = $r.get "encoded_exponent:#{@username}"
+    decoded_exponent = @exponent.tr('-_','+/').unpack('m').first
+    decoded_modulus = @modulus.tr('-_','+/').unpack('m').first
+    key = OpenSSL::PKey::RSA.new
+    key.e = OpenSSL::BN.new decoded_exponent
+    key.n = OpenSSL::BN.new decoded_modulus
+    return key
+  end
+
   finger = Redfinger.finger(wfid)
   finger.links.each do |link|
     if link["rel"] == "magic-public-key"
@@ -23,7 +40,6 @@ def verify_doc(public_key,sig,doc_id)
 end
 
 def validate_doc(doc_url)
-  r = Redis.new
   json = JSON.parse(open(doc_url).read)
   amount_to = json["amount_to"]
   amount_from = json["amount_from"]
@@ -31,7 +47,7 @@ def validate_doc(doc_url)
   from_wfid = json["from_wfid"]
   sig = json["sig"]
   doc_id = json["_id"]
-  priv_key = OpenSSL::PKey::RSA.new(r.get "private_key:#{@username}")
+  priv_key = OpenSSL::PKey::RSA.new($r.get "private_key:#{@username}")
   
   begin #decrypt amount, ignore doc if can't decrypt either amount value
     amount = priv_key.private_decrypt([amount_to].pack('H*'))
@@ -84,9 +100,8 @@ def validate_db(db_url)
 end
 
 def get_username
-  r = Redis.new
   uuid = request.cookies["openid"]
-  openid = r.get "identity:#{uuid}"
-  username = r.get "username:#{uuid}"
+  openid = $r.get "identity:#{uuid}"
+  username = $r.get "username:#{uuid}"
   return username
 end
