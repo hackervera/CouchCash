@@ -161,7 +161,7 @@ get "/openid_callback" do
     uuid = request.cookies["openid"]
     openid = $r.get "identity:#{uuid}"
     username = $r.get "username:#{uuid}"
-    priv_key = OpenSSL::PKey::RSA.generate(1024)
+    priv_key = OpenSSL::PKey::RSA.generate(4096)
     pub_key = priv_key.public_key
     modulus = priv_key.n.to_s
     exponent = priv_key.e.to_s
