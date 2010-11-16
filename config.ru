@@ -79,9 +79,10 @@ get "/validate" do
 end
 
 
-post "/owe" do
+get "/owe/:wfid/:amount" do
   amount = params[:amount]
-  doc_id = UUID.new.generate
+  #doc_id = UUID.new.generate
+  doc_id = Time.now.to_i
   uuid = request.cookies["openid"]
   openid = $r.get "identity:#{uuid}"
   username = $r.get "username:#{uuid}"
@@ -96,6 +97,7 @@ post "/owe" do
   amount_from = priv_key.public_encrypt(amount).unpack('H*').to_s
   body = { :to_wfid => to_wfid, :from_wfid => from_wfid, :amount_to => amount_to, :amount_from => amount_from, :sig => sig }
   response = Typhoeus::Request.put("#{couch}/#{doc_id}", :body => body.to_json, :headers => { :content_type => "application/json" })
+  redirect "/validate"
 end
 
 
@@ -268,9 +270,9 @@ get "/logout" do
 end
   
 get "/" do
-  @identity = false
+  identity = false
   unless @username.nil?
-    @identity = @username
+    identity = @username
   end
-  erb :index
+  haml :index, :locals => {:identity => identity}
 end
