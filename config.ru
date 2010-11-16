@@ -81,7 +81,8 @@ end
 
 post "/owe" do
   amount = params[:amount]
-  doc_id = UUID.new.generate
+  #doc_id = UUID.new.generate
+  doc_id = Time.now.to_i
   uuid = request.cookies["openid"]
   openid = $r.get "identity:#{uuid}"
   username = $r.get "username:#{uuid}"
@@ -268,9 +269,9 @@ get "/logout" do
 end
   
 get "/" do
-  @identity = false
+  identity = false
   unless @username.nil?
-    @identity = @username
+    identity = @username
   end
-  erb :index
+  haml :index, :locals => {:identity => identity}
 end
