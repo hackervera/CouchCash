@@ -269,9 +269,9 @@ get "/logout" do
 end
   
 get "/" do
-  identity = false
+  @identity = false
   unless @username.nil?
-    identity = @username
+    @identity = @username
   end
-  haml :index, :locals => {:identity => identity}
+  erb :index
 end
