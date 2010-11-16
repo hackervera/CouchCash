@@ -91,18 +91,36 @@ $(function(){
     $(this).closest('li').addClass('selected');    
 
   });
+  
+  function showLoader() {
+    $('.project-header').html(Mustache.to_html($('#loader').html(), {}));
+  }
+  
+  function hideLoader() {
+    $('.project-header').html('')
+  }
 
-  $('#transaction-log').click(function(){
+  $('#overview').click(function(){
+    showLoader();
     $.getJSON('/validate', function(data) {
-      $.each(data, function(person,amount) {
+      hideLoader();
+      $.each(data, function(person,amount) {        
         if (amount < 0) {
-          $('#content').append(person + " owes you " + amount + "bucks<br/>");
+          showCredit({person: person, amount: amount});
         } else {
-          $('#content').append("you owe " + person + " " + amount + "bucks <br/>");
+          showDebt({person: person, amount: amount});
         }
       })
     })
   })
+    
+  function showDebt(data) {
+    $('.project-header').append(Mustache.to_html($('#debt-template').html(), data));
+  }
+  
+  function showCredit(data) {
+    $('.project-header').append(Mustache.to_html($('#credit-template').html(), data));
+  }
   
   if (userAgentFamily != 'iOS') {
     $('.editable .field').live('blur', function(e) {
@@ -211,10 +229,11 @@ $(function(){
   // Setup
 
   $('.add-button').button({ icons: { primary: 'ui-icon-circle-arrow-e' } });
-  $('#logout').button({ icons: { primary: 'ui-icon-power' } });
+  $('#logout').button({ icons: { primary: 'ui-icon-power' } }).click(function(){ window.location = '/logout'; });
 
   // disableTextSelect works better than disableSelection
   $('.content-divider').disableTextSelect();
 
   resize();
+  $('#overview').click();
 });
