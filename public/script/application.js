@@ -148,6 +148,11 @@ $(function(){
     beforeclose: function() { return false; }    
   });
   $('#login-button').button({ });
+
+  $('#login-button').click(function(){
+    $('#login-form').submit();
+  })
+  
   $('#login-form').submit(function(e) {
     window.location = "/login?openid=http://google.com/profiles/" + $('#openid_url').val();
     e.preventDefault();
@@ -224,6 +229,24 @@ $(function(){
     $(document).bind('mouseup', end);
   })();
 
+  $('#send-money-dialog').dialog({
+    autoOpen: false,
+    width: 600,
+    buttons: {
+     'OK': function() { 
+        $.post('/owe', {wfid: $('#webfinger').val(), amount: $('#value').val()}, function(){
+          $('#overview').click();
+        });
+        $(this).dialog('close'); 
+      }, 
+    },
+    modal: true
+  });
+  
+  $('.add-button').click(function(e) {
+    $('#send-money-dialog').dialog('open');
+  });
+
   // Setup
 
   $('.add-button').button({ icons: { primary: 'ui-icon-circle-arrow-e' } });
@@ -232,6 +255,7 @@ $(function(){
   // disableTextSelect works better than disableSelection
   $('.content-divider').disableTextSelect();
 
+  $('label').inFieldLabels();  
   resize();
   $('#overview').click();
 });

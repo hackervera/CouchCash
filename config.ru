@@ -79,7 +79,7 @@ get "/validate" do
 end
 
 
-get "/owe/:wfid/:amount" do
+post "/owe" do
   amount = params[:amount]
   doc_id = UUID.new.generate
   uuid = request.cookies["openid"]
@@ -96,7 +96,6 @@ get "/owe/:wfid/:amount" do
   amount_from = priv_key.public_encrypt(amount).unpack('H*').to_s
   body = { :to_wfid => to_wfid, :from_wfid => from_wfid, :amount_to => amount_to, :amount_from => amount_from, :sig => sig }
   response = Typhoeus::Request.put("#{couch}/#{doc_id}", :body => body.to_json, :headers => { :content_type => "application/json" })
-  redirect "/validate"
 end
 
 
