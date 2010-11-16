@@ -8,5 +8,5 @@ gem 'oauth'
 gem 'ruby-openid'
 gem 'typhoeus'
 gem 'uuid'
-gem 'redfinger'
+gem 'redfinger', :git => "git://github.com/maxogden/redfinger.git"
 gem 'haml'

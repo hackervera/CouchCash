@@ -19,12 +19,21 @@ config =  YAML::load_file "config.yml"
 domain = config["domain"]
 couch = config["couch"]
 
-require 'keybuilder'
 
 store = OpenID::Store::Memory.new
 
-r = Redis.new
 run Sinatra::Application
+
+if ENV["REDISTOGO_URL"]
+  uri = URI.parse(ENV["REDISTOGO_URL"])
+  $r = Redis.new(:host => uri.host, :port => uri.port, :password => uri.password)
+else
+  $r = Redis.new
+end
+$r.set "domain", domain
+require 'keybuilder'
+
+
 
 set :views, File.dirname(__FILE__) + '/views'
 set :public, File.dirname(__FILE__) + '/public'
@@ -34,7 +43,7 @@ enable :sessions
 before do
   if request.cookies["openid"]
     uuid = request.cookies["openid"]
-    @username = (r.get "identity:#{uuid}").split('/')[-1]
+    @username = ($r.get "identity:#{uuid}").split('/')[-1]
   end
 end
 
@@ -74,11 +83,11 @@ post "/owe" do
   amount = params[:amount]
   doc_id = UUID.new.generate
   uuid = request.cookies["openid"]
-  openid = r.get "identity:#{uuid}"
-  username = r.get "username:#{uuid}"
-  modulus = r.get "encoded_modulus:#{username}"
-  exponent = r.get "encoded_exponent:#{username}"
-  priv_key = OpenSSL::PKey::RSA.new(r.get "private_key:#{username}")
+  openid = $r.get "identity:#{uuid}"
+  username = $r.get "username:#{uuid}"
+  modulus = $r.get "encoded_modulus:#{username}"
+  exponent = $r.get "encoded_exponent:#{username}"
+  priv_key = OpenSSL::PKey::RSA.new($r.get "private_key:#{username}")
   sig = priv_key.sign(OpenSSL::Digest::SHA1.new, doc_id).unpack('H*').to_s
   public_key = get_public_key(params[:wfid])
   to_wfid = priv_key.public_encrypt(params[:wfid]).unpack('H*').to_s
@@ -94,10 +103,10 @@ get "/newapikey" do
   key = `uuidgen`.strip
   uuid = request.cookies["openid"]
   puts uuid
-  openid = r.get "identity:#{uuid}"
+  openid = $r.get "identity:#{uuid}"
   puts openid
-  r.set "apikey:#{openid}", key
-  r.set "apikey_user:#{key}", openid
+  $r.set "apikey:#{openid}", key
+  $r.set "apikey_user:#{key}", openid
   return key
 end
 
@@ -105,11 +114,11 @@ get "/trade" do
   names = []
   @uuid = request.cookies["openid"]
   @openid = request.params["openid"]
-  openid_uuid = r.get "uuid:#{@openid}"
+  openid_uuid = $r.get "uuid:#{@openid}"
   if openid_uuid == @uuid
     return "You can't trade with yourself. Sorry"
   end
-  @items = r.smembers "items:#{@openid}"
+  @items = $r.smembers "items:#{@openid}"
   return erb :trade
 end
 
@@ -128,7 +137,7 @@ end
 
 get "/send_coin" do
   uuid = request.cookies["openid"]
-  identity = r.get("identity:#{uuid}")
+  identity = $r.get("identity:#{uuid}")
   if identity.nil?
     redirect "/"
   end
@@ -136,7 +145,7 @@ get "/send_coin" do
   puts json_request
   bitcoin_response = Typhoeus::Request.post("http://127.0.0.1:8332", :username => "tyler", :password => "tyleriscool", :headers => { :content_type => "plain/text" }, :body => json_request).body
   transaction_address = JSON.parse(bitcoin_response)["result"]
-  r.sadd "pending_transactions:#{identity}", transaction_address
+  $r.sadd "pending_transactions:#{identity}", transaction_address
   #r.set "transaction_user:#{transaction_address}", identity
   return "Hello #{identity}, please send your coins to #{transaction_address}"
 end
@@ -148,23 +157,22 @@ end
 
 get "/openid_callback" do
   def gen_keys
-    r= Redis.new
     uuid = request.cookies["openid"]
-    openid = r.get "identity:#{uuid}"
-    username = r.get "username:#{uuid}"
-    priv_key = OpenSSL::PKey::RSA.generate(1024)
+    openid = $r.get "identity:#{uuid}"
+    username = $r.get "username:#{uuid}"
+    priv_key = OpenSSL::PKey::RSA.generate(4096)
     pub_key = priv_key.public_key
     modulus = priv_key.n.to_s
     exponent = priv_key.e.to_s
     encoded_modulus = [modulus].pack('m').tr('+/','-_').gsub("\n","")
     encoded_exponent = [exponent].pack('m').tr('+/','-_').gsub("\n","")
-    r.set "public_key:#{username}", pub_key
+    $r.set "public_key:#{username}", pub_key
     puts pub_key
-    r.set "private_key:#{username}", priv_key
+    $r.set "private_key:#{username}", priv_key
     puts priv_key
-    r.set "encoded_exponent:#{username}", encoded_exponent
+    $r.set "encoded_exponent:#{username}", encoded_exponent
     puts encoded_exponent
-    r.set "encoded_modulus:#{username}", encoded_modulus
+    $r.set "encoded_modulus:#{username}", encoded_modulus
     puts encoded_modulus
   end
 
@@ -174,19 +182,24 @@ get "/openid_callback" do
   identity = request.params["openid.identity"]
   username = request.params["openid.claimed_id"].gsub(/.+\/profiles\/(.+?)/, '\1')
   if openid_response.status == :success
-    old_ident = r.get "private_key:#{username}"
+    old_ident = $r.get "private_key:#{username}"
     if old_ident.nil?
       puts "generating keys"
       gen_keys
     end
 
-    uuid = `uuidgen`.strip
-    r.set "uuid:#{identity}", uuid 
-    r.set  "identity:#{uuid}", identity
-    r.set "username:#{uuid}", username
+    #uuid = `uuidgen`.strip
+    begin
+      uuid = UUID.new.generate
+    rescue
+      uuid = Time.now.to_i
+    end
+    $r.set "uuid:#{identity}", uuid 
+    $r.set  "identity:#{uuid}", identity
+    $r.set "username:#{uuid}", username
     response.set_cookie("openid", :expires =>  Time.now + 604800, :value => uuid)
-    r.sadd "openid_people", identity
-    balance = r.get "balance:#{identity}"
+    $r.sadd "openid_people", identity
+    balance = $r.get "balance:#{identity}"
     redirect "/"
   else
     return "Oops there was an error. We have been notified"
@@ -196,9 +209,9 @@ end
 get "/balance" do
   content_type :json
   apikey = apikey(request.cookies["openid"])
-  identity = r.get "apikey_user:#{apikey}"
+  identity = $r.get "apikey_user:#{apikey}"
   if identity
-    balance = r.get("balance:#{identity}").to_i
+    balance = $r.get("balance:#{identity}").to_i
     return { :type => "success", :balance => balance, :identity => identity }.to_json
   else
     return { :type => "error", :message => "could not verify identity" }.to_json
@@ -207,11 +220,11 @@ end
 
 get "/webfinger/:uri" do
   @username = params[:uri].gsub(/(?:acct:)?([^@]+)@#{Regexp.quote(domain)}/){ $1 }
-  @modulus = r.get "encoded_modulus:#{@username}"
+  @modulus = $r.get "encoded_modulus:#{@username}"
   if @modulus.nil?
     return "User not found"
   end
-  @exponent = r.get "encoded_exponent:#{@username}"
+  @exponent = $r.get "encoded_exponent:#{@username}"
   return erb :webfinger
 end
   
@@ -220,26 +233,26 @@ get "/transfer" do
   apikey = request.params["apikey"]
   to = request.params["to"]
   amount = request.params["amount"]
-  identity = r.get "apikey_user:#{apikey}"
+  identity = $r.get "apikey_user:#{apikey}"
   if identity == to
     return { :type => "error", :message => "You can't transfer to yourself" }.to_json
   end
-  balance = r.get "balance:#{identity}"
-  to_balance = r.get "balance:#{to}"
-  people = r.smembers "openid_people"
+  balance = $r.get "balance:#{identity}"
+  to_balance = $r.get "balance:#{to}"
+  people = $r.smembers "openid_people"
   if identity
     if people.include? to
       if amount <= balance
         balance = balance.to_i - amount.to_i
         puts balance
         puts identity
-        r.set "balance:#{identity}", balance
+        $r.set "balance:#{identity}", balance
       else
         return { :type => "error", :message => "You don't have that much money" }.to_json
       end
       to_balance = to_balance.to_i + amount.to_i
       puts to_balance
-      r.set "balance:#{to}", to_balance
+      $r.set "balance:#{to}", to_balance
     else
       return { :type => "error", :message => "#{to} doesn't exist in system" }.to_json
     end
