@@ -72,7 +72,8 @@ post "/owe" do
   content_type :json
   return {:error => "bad amount!"}.to_json if params[:amount].nil?
   amount = params[:amount]
-  doc_id = UUID.new.generate
+  #doc_id = UUID.new.generate #DOESN'T WORK ON HEROKU --tjgillies
+  doc_id = Time.now.to_i
   uuid = request.cookies["openid"]
   openid = $r.get "identity:#{uuid}"
   username = $r.get "username:#{uuid}"
