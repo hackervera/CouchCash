@@ -106,7 +106,7 @@
     <script id="credit-template" type="text/mustache">
       <li class='task'>
         <span class='entry'>
-          {{person}} owes you {{amount}}
+          {{person}} owes you {{Math.abs(amount)}}
         </span>
       </li>
     </script>
