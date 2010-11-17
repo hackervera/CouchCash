@@ -2,7 +2,7 @@ require 'openssl'
 require 'open-uri'
 
 def get_public_key(wfid)  
-  user, domain = wfid.split "@"
+  username, domain = wfid.split "@"
   
   if domain == $r.get("domain")
     modulus = $r.get "encoded_modulus:#{username}"
