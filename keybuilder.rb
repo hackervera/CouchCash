@@ -4,7 +4,7 @@ require 'open-uri'
 def get_public_key(wfid)  
   user, domain = wfid.split "@"
   
-  if domain == $r.get "domain"
+  if domain == $r.get("domain")
     modulus = $r.get "encoded_modulus:#{username}"
     exponent = $r.get "encoded_exponent:#{username}"
     decoded_exponent = exponent.tr('-_','+/').unpack('m').first
