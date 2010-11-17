@@ -2,7 +2,14 @@ require 'openssl'
 require 'open-uri'
 
 def get_public_key(wfid)  
-  finger = Redfinger.finger(wfid)
+  begin
+    finger = Redfinger.finger(wfid)
+  rescue => e
+    puts e.inspect
+    puts e.backtrace
+    puts wfid
+  end
+  
   finger.links.each do |link|
     if link["rel"] == "magic-public-key"
       key_text = link["href"]
