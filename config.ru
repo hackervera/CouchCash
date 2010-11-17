@@ -70,8 +70,8 @@ end
 
 post "/owe" do
   content_type :json
-  return {:error => "bad amount!"}.to_json if params[:amount].nil?
-  amount = params[:amount]
+  return {:error => "bad amount!"}.to_json if request.params["amount"].nil?
+  amount = request.params["amount"]
   #doc_id = UUID.new.generate #DOESN'T WORK ON HEROKU --tjgillies
   doc_id = Time.now.to_i.to_s
   uuid = request.cookies["openid"]
@@ -81,8 +81,8 @@ post "/owe" do
   exponent = $r.get "encoded_exponent:#{username}"
   priv_key = OpenSSL::PKey::RSA.new($r.get "private_key:#{username}")
   sig = priv_key.sign(OpenSSL::Digest::SHA1.new, doc_id).unpack('H*').to_s
-  public_key = get_public_key(params[:wfid])
-  to_wfid = priv_key.public_encrypt(params[:wfid]).unpack('H*').to_s
+  public_key = get_public_key(request.params["wfid"])
+  to_wfid = priv_key.public_encrypt(request.params["wfid"]).unpack('H*').to_s
   from_wfid = public_key.public_encrypt("#{username}@#{domain}").unpack('H*').to_s
   amount_to = public_key.public_encrypt(amount).unpack('H*').to_s
   amount_from = priv_key.public_encrypt(amount).unpack('H*').to_s
