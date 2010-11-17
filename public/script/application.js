@@ -100,13 +100,15 @@ $(function(){
     $('.project-header').html('')
   }
 
-  $('#transaction-log').click(function(){
-    $.getJSON('/validate', function(data) {
-      $.each(data, function(person,amount) {
+  $('#overview').click(function(){
+    showLoader();
+    $.getJSON('/balance', function(data) {
+      hideLoader();
+      $.each(data, function(person,amount) {        
         if (amount < 0) {
-          $('#content').append(person + " owes you " + amount + "bucks<br/>");
+          showCredit({person: person, amount: amount});
         } else {
-          $('#content').append("you owe " + person + " " + amount + "bucks <br/>");
+          showDebt({person: person, amount: amount});
         }
       })
     })
@@ -233,11 +235,18 @@ $(function(){
     autoOpen: false,
     width: 600,
     buttons: {
-     'OK': function() { 
-        $.post('/owe', {wfid: $('#webfinger').val(), amount: $('#value').val()}, function(){
-          $('#overview').click();
+     'OK': function(e) { 
+       $(e.target).text("Sending payment...")
+       var dialog = $(this);
+       showLoader();
+        $.post('/owe', {wfid: $('#webfinger').val(), amount: $('#value').val()}, function(data) {
+          dialog.dialog('close'); 
+          $.get('/validate', function(){
+            hideLoader();
+            $('#overview').click();            
+          })
         });
-        $(this).dialog('close'); 
+        
       }, 
     },
     modal: true
