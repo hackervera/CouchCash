@@ -106,7 +106,7 @@ $(function(){
       hideLoader();
       $.each(data, function(person,amount) {        
         if (amount < 0) {
-          showCredit({person: person, amount: amount});
+          showCredit({person: person, amount: Math.abs(amount)});
         } else {
           showDebt({person: person, amount: amount});
         }
