@@ -4,8 +4,8 @@
   See http://mustache.github.com/ for more info.
 */
 
-var Mustache = function() {
-  var Renderer = function() {};
+var Mustache = (() => {
+  var Renderer = () => {};
 
   Renderer.prototype = {
     otag: "{{",
@@ -17,7 +17,7 @@ var Mustache = function() {
     },
     context: {},
 
-    render: function(template, context, partials, in_recursion) {
+    render(template, context, partials, in_recursion) {
       // reset buffer & set context
       if(!in_recursion) {
         this.context = context;
@@ -46,7 +46,7 @@ var Mustache = function() {
     /*
       Sends parsed lines
     */
-    send: function(line) {
+    send(line) {
       if(line != "") {
         this.buffer.push(line);
       }
@@ -55,7 +55,7 @@ var Mustache = function() {
     /*
       Looks for %PRAGMAS
     */
-    render_pragmas: function(template) {
+    render_pragmas(template) {
       // no pragmas
       if(!this.includes("%", template)) {
         return template;
@@ -64,7 +64,7 @@ var Mustache = function() {
       var that = this;
       var regex = new RegExp(this.otag + "%([\\w-]+) ?([\\w]+=[\\w]+)?" +
             this.ctag);
-      return template.replace(regex, function(match, pragma, options) {
+      return template.replace(regex, (match, pragma, options) => {
         if(!that.pragmas_implemented[pragma]) {
           throw({message: 
             "This implementation of mustache doesn't understand the '" +
@@ -83,7 +83,7 @@ var Mustache = function() {
     /*
       Tries to find a partial in the curent scope and render it
     */
-    render_partial: function(name, context, partials) {
+    render_partial(name, context, partials) {
       name = this.trim(name);
       if(!partials || partials[name] === undefined) {
         throw({message: "unknown_partial '" + name + "'"});
@@ -97,7 +97,7 @@ var Mustache = function() {
     /*
       Renders inverted (^) and normal (#) sections
     */
-    render_section: function(template, context, partials) {
+    render_section(template, context, partials) {
       if(!this.includes("#", template) && !this.includes("^", template)) {
         return template;
       }
@@ -109,7 +109,7 @@ var Mustache = function() {
               "\\s*", "mg");
 
       // for each {{#foo}}{{/foo}} section do...
-      return template.replace(regex, function(match, type, name, content) {
+      return template.replace(regex, (match, type, name, content) => {
         var value = that.find(name, context);
         if(type == "^") { // inverted section
           if(!value || that.is_array(value) && value.length === 0) {
@@ -120,18 +120,14 @@ var Mustache = function() {
           }
         } else if(type == "#") { // normal section
           if(that.is_array(value)) { // Enumerable, Let's loop!
-            return that.map(value, function(row) {
-              return that.render(content, that.create_context(row),
-                partials, true);
-            }).join("");
+            return that.map(value, row => that.render(content, that.create_context(row),
+              partials, true)).join("");
           } else if(that.is_object(value)) { // Object, Use it as subcontext!
             return that.render(content, that.create_context(value),
               partials, true);
           } else if(typeof value === "function") {
             // higher order section
-            return value.call(context, content, function(text) {
-              return that.render(text, context, partials, true);
-            });
+            return value.call(context, content, text => that.render(text, context, partials, true));
           } else if(value) { // boolean section
             return that.render(content, context, partials, true);
           } else {
@@ -144,17 +140,15 @@ var Mustache = function() {
     /*
       Replace {{foo}} and friends with values from our view
     */
-    render_tags: function(template, context, partials, in_recursion) {
+    render_tags(template, context, partials, in_recursion) {
       // tit for tat
       var that = this;
 
-      var new_regex = function() {
-        return new RegExp(that.otag + "(=|!|>|\\{|%)?([^\\/#\\^]+?)\\1?" +
-          that.ctag + "+", "g");
-      };
+      var new_regex = () => new RegExp(that.otag + "(=|!|>|\\{|%)?([^\\/#\\^]+?)\\1?" +
+        that.ctag + "+", "g");
 
       var regex = new_regex();
-      var tag_replace_callback = function(match, operator, name) {
+      var tag_replace_callback = (match, operator, name) => {
         switch(operator) {
         case "!": // ignore comments
           return "";
@@ -183,13 +177,13 @@ var Mustache = function() {
       }
     },
 
-    set_delimiters: function(delimiters) {
+    set_delimiters(delimiters) {
       var dels = delimiters.split(" ");
       this.otag = this.escape_regex(dels[0]);
       this.ctag = this.escape_regex(dels[1]);
     },
 
-    escape_regex: function(text) {
+    escape_regex(text) {
       // thank you Simon Willison
       if(!arguments.callee.sRE) {
         var specials = [
@@ -207,7 +201,7 @@ var Mustache = function() {
       find `name` in current `context`. That is find me a value
       from the view object
     */
-    find: function(name, context) {
+    find(name, context) {
       name = this.trim(name);
 
       // Checks whether a value is thruthy or false or 0
@@ -235,16 +229,16 @@ var Mustache = function() {
     // Utility methods
 
     /* includes tag */
-    includes: function(needle, haystack) {
+    includes(needle, haystack) {
       return haystack.indexOf(this.otag + needle) != -1;
     },
 
     /*
       Does away with nasty characters
     */
-    escape: function(s) {
+    escape(s) {
       s = String(s === null ? "" : s);
-      return s.replace(/&(?!\w+;)|["'<>\\]/g, function(s) {
+      return s.replace(/&(?!\w+;)|["'<>\\]/g, s => {
         switch(s) {
         case "&": return "&amp;";
         case "\\": return "\\\\";
@@ -258,7 +252,7 @@ var Mustache = function() {
     },
 
     // by @langalex, support for arrays of strings
-    create_context: function(_context) {
+    create_context(_context) {
       if(this.is_object(_context)) {
         return _context;
       } else {
@@ -272,25 +266,25 @@ var Mustache = function() {
       }
     },
 
-    is_object: function(a) {
+    is_object(a) {
       return a && typeof a == "object";
     },
 
-    is_array: function(a) {
+    is_array(a) {
       return Object.prototype.toString.call(a) === '[object Array]';
     },
 
     /*
       Gets rid of leading and trailing whitespace
     */
-    trim: function(s) {
+    trim(s) {
       return s.replace(/^\s*|\s*$/g, "");
     },
 
     /*
       Why, why, why? Because IE. Cry, cry cry.
     */
-    map: function(array, fn) {
+    map(array, fn) {
       if (typeof array.map == "function") {
         return array.map(fn);
       } else {
@@ -304,14 +298,14 @@ var Mustache = function() {
     }
   };
 
-  return({
+  return {
     name: "mustache.js",
     version: "0.3.1-dev",
 
     /*
       Turns a template and view into HTML
     */
-    to_html: function(template, view, partials, send_fun) {
+    to_html(template, view, partials, send_fun) {
       var renderer = new Renderer();
       if(send_fun) {
         renderer.send = send_fun;
@@ -321,5 +315,5 @@ var Mustache = function() {
         return renderer.buffer.join("\n");
       }
     }
-  });
-}();
+  };
+})();

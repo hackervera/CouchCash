@@ -163,8 +163,7 @@ if (!this.JSON) {
     this.JSON = {};
 }
 
-(function () {
-
+((() => {
     function f(n) {
         // Format integers to have at least two digits.
         return n < 10 ? '0' + n : n;
@@ -190,20 +189,22 @@ if (!this.JSON) {
         };
     }
 
-    var cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
-        escapable = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
-        gap,
-        indent,
-        meta = {    // table of character substitutions
-            '\b': '\\b',
-            '\t': '\\t',
-            '\n': '\\n',
-            '\f': '\\f',
-            '\r': '\\r',
-            '"' : '\\"',
-            '\\': '\\\\'
-        },
-        rep;
+    var cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;
+    var escapable = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;
+    var gap;
+    var indent;
+
+    var meta = {    // table of character substitutions
+        '\b': '\\b',
+        '\t': '\\t',
+        '\n': '\\n',
+        '\f': '\\f',
+        '\r': '\\r',
+        '"' : '\\"',
+        '\\': '\\\\'
+    };
+
+    var rep;
 
 
     function quote(string) {
@@ -215,7 +216,7 @@ if (!this.JSON) {
 
         escapable.lastIndex = 0;
         return escapable.test(string) ?
-            '"' + string.replace(escapable, function (a) {
+            '"' + string.replace(escapable, a => {
                 var c = meta[a];
                 return typeof c === 'string' ? c :
                     '\\u' + ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
@@ -225,32 +226,37 @@ if (!this.JSON) {
 
 
     function str(key, holder) {
+        // Produce a string from holder[key].
 
-// Produce a string from holder[key].
+        var // The loop counter.
+        i;
 
-        var i,          // The loop counter.
-            k,          // The member key.
-            v,          // The member value.
-            length,
-            mind = gap,
-            partial,
-            value = holder[key];
+        var // The member key.
+        k;
 
-// If the value has a toJSON method, call it to obtain a replacement value.
+        var // The member value.
+        v;
+
+        var length;
+        var mind = gap;
+        var partial;
+        var value = holder[key];
+
+        // If the value has a toJSON method, call it to obtain a replacement value.
 
         if (value && typeof value === 'object' &&
                 typeof value.toJSON === 'function') {
             value = value.toJSON(key);
         }
 
-// If we were called with a replacer function, then call the replacer to
-// obtain a replacement value.
+        // If we were called with a replacer function, then call the replacer to
+        // obtain a replacement value.
 
         if (typeof rep === 'function') {
             value = rep.call(holder, key, value);
         }
 
-// What happens next depends on the value's type.
+        // What happens next depends on the value's type.
 
         switch (typeof value) {
         case 'string':
@@ -350,10 +356,10 @@ if (!this.JSON) {
         }
     }
 
-// If the JSON object does not yet have a stringify method, give it one.
+    // If the JSON object does not yet have a stringify method, give it one.
 
     if (typeof JSON.stringify !== 'function') {
-        JSON.stringify = function (value, replacer, space) {
+        JSON.stringify = (value, replacer, space) => {
 
 // The stringify method takes a value and an optional replacer, and an optional
 // space parameter, and returns a JSON text. The replacer can be a function
@@ -397,10 +403,10 @@ if (!this.JSON) {
     }
 
 
-// If the JSON object does not yet have a parse method, give it one.
+    // If the JSON object does not yet have a parse method, give it one.
 
     if (typeof JSON.parse !== 'function') {
-        JSON.parse = function (text, reviver) {
+        JSON.parse = (text, reviver) => {
 
 // The parse method takes a text and an optional reviver function, and returns
 // a JavaScript value if the text is a valid JSON text.
@@ -408,11 +414,13 @@ if (!this.JSON) {
             var j;
 
             function walk(holder, key) {
+                // The walk method is used to recursively walk the resulting structure so
+                // that modifications can be made.
 
-// The walk method is used to recursively walk the resulting structure so
-// that modifications can be made.
+                var k;
 
-                var k, v, value = holder[key];
+                var v;
+                var value = holder[key];
                 if (value && typeof value === 'object') {
                     for (k in value) {
                         if (Object.hasOwnProperty.call(value, k)) {
@@ -436,10 +444,8 @@ if (!this.JSON) {
             text = String(text);
             cx.lastIndex = 0;
             if (cx.test(text)) {
-                text = text.replace(cx, function (a) {
-                    return '\\u' +
-                        ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
-                });
+                text = text.replace(cx, a => '\\u' +
+                    ('0000' + a.charCodeAt(0).toString(16)).slice(-4));
             }
 
 // In the second stage, we run the text against regular expressions that look
@@ -479,4 +485,4 @@ replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
             throw new SyntaxError('JSON.parse');
         };
     }
-}());
+})());

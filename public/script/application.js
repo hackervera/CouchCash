@@ -1,8 +1,8 @@
-var dateFormat = 'yy/mm/dd',
-    originalEditableValue,
-    dragLock = new Lock(),
-    userAgent,
-    userAgentFamily;
+var dateFormat = 'yy/mm/dd';
+var originalEditableValue;
+var dragLock = new Lock();
+var userAgent;
+var userAgentFamily;
 
 if (navigator.userAgent.match(/iPad/i) != null) {
   userAgent = 'iPad';
@@ -12,7 +12,7 @@ if (navigator.userAgent.match(/iPad/i) != null) {
   userAgentFamily = 'iOS';
 }
 
-$(document).ajaxError(function(e, xhr, settings, exception) {
+$(document).ajaxError((e, xhr, settings, exception) => {
   if (xhr.status !== 200) {
     if (settings.url.match(/update_openid/)) {
       $('#settings-feedback').html(Feedback.message('error', xhr.responseText));
@@ -26,8 +26,9 @@ $(document).ajaxError(function(e, xhr, settings, exception) {
 
 // Correct widths and heights based on window size
 function resize() {
-  var height = $(window).height() - $('#global-menu').height() - 11, containerWidth = $($('ul.project-header')[0]).width(),
-      width = $('.content').width() - $('.ui-icon-todo').width() - $('.ui-icon-trash').width() - 88 + 'px';
+  var height = $(window).height() - $('#global-menu').height() - 11;
+  var containerWidth = $($('ul.project-header')[0]).width();
+  var width = $('.content').width() - $('.ui-icon-todo').width() - $('.ui-icon-trash').width() - 88 + 'px';
 
   $('.outline-view').css({ height: height + 'px' });
   $('.content').css({ height: height + 'px', width: $('body').width() - $('.outline-view').width() - $('.content-divider').width() - 1 + 'px' });
@@ -40,7 +41,7 @@ function resize() {
   $('.todo-items .button').each(function() {
     this.style.width = containerWidth - $($(this).prev('.state')[0]).width() - 22 + 'px';
   });
-  $('.name-text').css({ width: width, 'max-width': parseInt(width, 10) - 50 });
+  $('.name-text').css({ width, 'max-width': parseInt(width, 10) - 50 });
 }
 
 
@@ -55,8 +56,8 @@ function presentDate(value) {
 }
 
 function datePickerSave(value, element, picker) {
-  var d = $.datepicker.parseDate('mm/dd/yy', value, {}),
-      container;
+  var d = $.datepicker.parseDate('mm/dd/yy', value, {});
+  var container;
   element.html('<span class="clear-due ui-icon ui-icon-circle-close"> </span>'
                + '<span class="due-button">' + $.datepicker.formatDate($.datepicker.RFC_2822, d) + '</span>');
   $(picker).remove();
@@ -74,9 +75,9 @@ function escapeQuotes(text) {
   return text ? text.replace(/"/g, '&quot;') : text;
 }
 
-$(function(){
+$(() => {
 
-  $(window).resize(function() {
+  $(window).resize(() => {
     setTimeout(resize, 100);
   });
 
@@ -100,15 +101,15 @@ $(function(){
     $('.project-header').html('')
   }
 
-  $('#overview').click(function(){
+  $('#overview').click(() => {
     showLoader();
-    $.getJSON('/balance', function(data) {
+    $.getJSON('/balance', data => {
       hideLoader();
-      $.each(data, function(person,amount) {        
+      $.each(data, (person, amount) => {        
         if (amount < 0) {
-          showCredit({person: person, amount: Math.abs(amount)});
+          showCredit({person, amount: Math.abs(amount)});
         } else {
-          showDebt({person: person, amount: amount});
+          showDebt({person, amount});
         }
       })
     })
@@ -123,14 +124,14 @@ $(function(){
   }
   
   if (userAgentFamily != 'iOS') {
-    $('.editable .field').live('blur', function(e) {
+    $('.editable .field').live('blur', e => {
       saveEditable();
       closeEditable();
     });
   }
 
   if (userAgentFamily !== 'iOS') {  
-    $('.content').live('click', function(e) {
+    $('.content').live('click', e => {
       if ($(e.target).hasClass('content')) {
         TasksController.closeEditors();
         $('.todo-items .highlight').removeClass('highlight');
@@ -145,37 +146,37 @@ $(function(){
     width: 400,
     modal: true,
     resizable: false,
-    open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+    open(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
     closeOnEscape: false,
-    beforeclose: function() { return false; }    
+    beforeclose() { return false; }    
   });
   $('#login-button').button({ });
 
-  $('#login-button').click(function(){
+  $('#login-button').click(() => {
     $('#login-form').submit();
   })
   
-  $('#login-form').submit(function(e) {
+  $('#login-form').submit(e => {
     window.location = "/login?openid=http://google.com/profiles/" + $('#openid_url').val();
     e.preventDefault();
   });
   $('#openid_url').select();
 
   // Resize when the dialog opens/closes else it sometimes messes up the scrollbars
-  $('#delete-project-button').click(function(e) {
+  $('#delete-project-button').click(e => {
     $('#delete-project-dialog').dialog('open');
     resize();
     e.preventDefault();
     return false;
   });
 
-  $('#export-text-button').click(function(e) {
+  $('#export-text-button').click(e => {
     $('#export-text-dialog').dialog('open');
-    var input = $('#export-text-value'),
-        project = Project.find(selectedProject()),
-        tasks = ProjectsController.tasks(project),
-        output = '',
-        done;
+    var input = $('#export-text-value');
+    var project = Project.find(selectedProject());
+    var tasks = ProjectsController.tasks(project);
+    var output = '';
+    var done;
 
     for (var i in tasks) {
       done = tasks[i].get('done') ? '✓ ' : '◻ ';
@@ -185,7 +186,7 @@ $(function(){
     e.preventDefault();
   });
 
-  $(document).bind('dialogclose', function(event, ui) {
+  $(document).bind('dialogclose', (event, ui) => {
     resize();
   });
 
@@ -204,8 +205,9 @@ $(function(){
   });
 
   // Resizable panes
-  (function() {
-    var moving = false, width = 0;
+  ((() => {
+    var moving = false;
+    var width = 0;
 
     function start() {
       moving = true;
@@ -229,7 +231,7 @@ $(function(){
     $('.content-divider').bind('mousedown', start);
     $(document).bind('mousemove', move);
     $(document).bind('mouseup', end);
-  })();
+  }))();
 
   $('#send-money-dialog').dialog({
     autoOpen: false,
@@ -239,9 +241,9 @@ $(function(){
        $(e.target).text("Sending payment...")
        var dialog = $(this);
        showLoader();
-        $.post('/owe', {wfid: $('#webfinger').val(), amount: $('#value').val()}, function(data) {
+        $.post('/owe', {wfid: $('#webfinger').val(), amount: $('#value').val()}, data => {
           dialog.dialog('close'); 
-          $.get('/validate', function(){
+          $.get('/validate', () => {
             hideLoader();
             $('#overview').click();            
           })
@@ -252,14 +254,14 @@ $(function(){
     modal: true
   });
   
-  $('.add-button').click(function(e) {
+  $('.add-button').click(e => {
     $('#send-money-dialog').dialog('open');
   });
 
   // Setup
 
   $('.add-button').button({ icons: { primary: 'ui-icon-circle-arrow-e' } });
-  $('#logout').button({ icons: { primary: 'ui-icon-power' } }).click(function(){ window.location = '/logout'; });
+  $('#logout').button({ icons: { primary: 'ui-icon-power' } }).click(() => { window.location = '/logout'; });
 
   // disableTextSelect works better than disableSelection
   $('.content-divider').disableTextSelect();

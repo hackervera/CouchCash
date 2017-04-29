@@ -9,7 +9,7 @@
  *
  * @version 0.1.2
  */
-(function ($) {
+(($ => {
 
   $.InFieldLabels = function (label, field, options) {
     // To avoid scope issues, use 'base' instead of 'this'
@@ -26,7 +26,7 @@
     base.$label.data("InFieldLabels", base);
     base.showing = true;
 
-    base.init = function () {
+    base.init = () => {
       // Merge supplied options with default options
       base.options = $.extend({}, $.InFieldLabels.defaultOptions, options);
 
@@ -36,21 +36,21 @@
         base.showing = false;
       }
 
-      base.$field.focus(function () {
+      base.$field.focus(() => {
         base.fadeOnFocus();
-      }).blur(function () {
+      }).blur(() => {
         base.checkForEmpty(true);
-      }).bind('keydown.infieldlabel', function (e) {
+      }).bind('keydown.infieldlabel', e => {
         // Use of a namespace (.infieldlabel) allows us to
         // unbind just this method later
         base.hideOnChange(e);
-      }).bind('paste', function (e) {
+      }).bind('paste', e => {
         // Since you can not paste an empty string we can assume
         // that the fieldis not empty and the label can be cleared.
         base.setOpacity(0.0);
-      }).change(function (e) {
+      }).change(e => {
         base.checkForEmpty();
-      }).bind('onPropertyChange', function () {
+      }).bind('onPropertyChange', () => {
         base.checkForEmpty();
       });
     };
@@ -58,21 +58,21 @@
     // If the label is currently showing
     // then fade it down to the amount
     // specified in the settings
-    base.fadeOnFocus = function () {
+    base.fadeOnFocus = () => {
       if (base.showing) {
         base.setOpacity(base.options.fadeOpacity);
       }
     };
 
-    base.setOpacity = function (opacity) {
-      base.$label.stop().animate({ opacity: opacity }, base.options.fadeDuration);
+    base.setOpacity = opacity => {
+      base.$label.stop().animate({ opacity }, base.options.fadeDuration);
       base.showing = (opacity > 0.0);
     };
 
     // Checks for empty as a fail safe
     // set blur to true when passing from
     // the blur event
-    base.checkForEmpty = function (blur) {
+    base.checkForEmpty = blur => {
       if (base.$field.val() === "") {
         base.prepForShow();
         base.setOpacity(blur ? 1.0 : base.options.fadeOpacity);
@@ -81,19 +81,19 @@
       }
     };
 
-    base.prepForShow = function (e) {
+    base.prepForShow = e => {
       if (!base.showing) {
         // Prepare for a animate in...
         base.$label.css({opacity: 0.0}).show();
 
         // Reattach the keydown event
-        base.$field.bind('keydown.infieldlabel', function (e) {
+        base.$field.bind('keydown.infieldlabel', e => {
           base.hideOnChange(e);
         });
       }
     };
 
-    base.hideOnChange = function (e) {
+    base.hideOnChange = e => {
       if (
           (e.keyCode === 16) || // Skip Shift
           (e.keyCode === 9) // Skip Tab
@@ -125,7 +125,9 @@
       // Find input or textarea based on for= attribute
       // The for attribute on the label must contain the ID
       // of the input or textarea element
-      var for_attr = $(this).attr('for'), $field;
+      var for_attr = $(this).attr('for');
+
+      var $field;
       if (!for_attr) {
         return; // Nothing to attach, since the for field wasn't used
       }
@@ -146,11 +148,11 @@
 
       if ($field.length === 0) {
         return; // Again, nothing to attach
-      } 
+      }
 
       // Only create object for input[text], input[password], or textarea
       (new $.InFieldLabels(this, $field[0], options));
     });
   };
 
-}(jQuery));
+})(jQuery));
