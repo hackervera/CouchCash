@@ -7,10 +7,10 @@ Lock.prototype.lock = function() {
   this.locked = true;
 };
 
-Lock.prototype.timedUnlock = function() {
-  var lock = this,
-      fn = arguments[0];
-  setTimeout(function() { lock.unlock(); if (fn) fn(); }, this.lockTime);
+Lock.prototype.timedUnlock = function(...args) {
+  var lock = this;
+  var fn = args[0];
+  setTimeout(() => { lock.unlock(); if (fn) fn(); }, this.lockTime);
 };
 
 Lock.prototype.unlock = function() {

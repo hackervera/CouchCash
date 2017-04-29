@@ -1,32 +1,34 @@
 var Feedback = {
-  message: function(type, message) {
-    var stateClass = type === 'error' ? 'ui-state-error' : 'ui-state-highlight',
-        iconClass = type === 'error' ? 'ui-icon-alert' : 'ui-icon-info',
-        html = '<div class="ui-widget">'
-    + '<div class="' + stateClass + ' ui-corner-all" style="margin-top: 20px; padding: 0 .7em;">'
-    + '  <p><span class="ui-icon ' + iconClass + '" style="float: left; margin-right: .3em;"></span>'
-    + '  ' + message + '</p>' 
-    + '</div>'
-    + '</div>';
+  message(type, message) {
+    var stateClass = type === 'error' ? 'ui-state-error' : 'ui-state-highlight';
+    var iconClass = type === 'error' ? 'ui-icon-alert' : 'ui-icon-info';
+
+    var html = '<div class="ui-widget">'
++ '<div class="' + stateClass + ' ui-corner-all" style="margin-top: 20px; padding: 0 .7em;">'
++ '  <p><span class="ui-icon ' + iconClass + '" style="float: left; margin-right: .3em;"></span>'
++ '  ' + message + '</p>' 
++ '</div>'
++ '</div>';
+
     return html;
   },
 
-  info: function(message) {
+  info(message) {
     $('#feedback').html(Feedback.message('info', message));
     Feedback.show();
   },
 
-  error: function(message) {
+  error(message) {
     $('#feedback').html(Feedback.message('error', message));
     Feedback.show();
   },
 
-  hide: function() {
+  hide() {
     $('#feedback').html('');
     $('#feedback').hide();
   },
 
-  show: function() {
+  show() {
     $('#feedback').show();
   }
 }
